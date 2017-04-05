@@ -41,7 +41,7 @@ forecast = function(object, ...) {
 #' # train and forecast
 #' dat  = arima.sim(model = list(ar = c(.8,.1), ma = c(.4), order = c(2,0,1)), n = 300)
 #' jump = data.frame(jump = ifelse(diff(dat) > .5, "up","down"))
-#' jump.times = as.POSIXct("1992-01-14") + 1:298
+#' jump.times = as.POSIXct("1992-01-14") + 1:299
 #'
 #' classif.task = makeClassifTask(data = jump,target = "jump")
 #' classif.task = createLagDiffFeatures(classif.task, lag = 1L:15L,
@@ -160,7 +160,7 @@ makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
 
     .data = rbind(.data,NA)
     # The dates here will be thrown away later
-    times =  as.POSIXct("1992-01-14") + 0:199
+    times =  as.POSIXct("1992-01-14") + 1:(nrow(.data))
     if (i == 1) {
       print(.data)
       print(forecasts)
@@ -186,7 +186,7 @@ makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
       #FIXME: I don't know regex well enough to do this in one sweep
       colnames(pred$data) = str_replace(colnames(pred$data),"prob","")
       colnames(pred$data) = str_replace(colnames(pred$data),"[.]","")
-      .data[nrow(.data),] =pred$data$response
+      .data[nrow(.data),] = pred$data$response
       pred$data$response = NULL
       forecasts[[i]] = pred$data
     } else if (pred$predict.type == "se") {
