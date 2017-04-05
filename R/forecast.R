@@ -184,8 +184,8 @@ makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
       .data[nrow(.data),] = getPredictionResponse(pred)
     } else if (pred$predict.type == "prob") {
       #FIXME: I don't know regex well enough to do this in one sweep
-      colnames(pred$data) = stri_replace(colnames(pred$data),"prob","")
-      colnames(pred$data) = stri_replace(colnames(pred$data),"[.]","")
+      colnames(pred$data) = stri_replace_all_regex(colnames(pred$data),"prob","")
+      colnames(pred$data) = stri_replace_all_regex(colnames(pred$data),"[.]","")
       .data[nrow(.data),] = pred$data$response
       pred$data$response = NULL
       forecasts[[i]] = pred$data
