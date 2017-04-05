@@ -41,17 +41,16 @@ forecast = function(object, ...) {
 #' # train and forecast
 #' dat  = arima.sim(model = list(ar = c(.8,.1), ma = c(.4), order = c(2,0,1)), n = 300)
 #' jump = data.frame(jump = ifelse(diff(dat) > .5, "up","down"))
-#' times = (as.POSIXct("1992-01-14")) + lubridate::days(1:299)
-#' rownames(jump) = times
+#' jump.times = as.POSIXct("1992-01-14") + 1:298
 #'
 #' classif.task = makeClassifTask(data = jump,target = "jump")
 #' classif.task = createLagDiffFeatures(classif.task, lag = 1L:15L,
-#'                                      na.pad = FALSE)
+#'                                      na.pad = FALSE, date.col = jump.times)
 #' classif.learn = makeLearner("classif.ada")
 #' classif.train = train(classif.learn,classif.task)
 #' forecast(classif.train, h = 10)
 #'
-#' # predict now probabiliies instead of class labels
+#' # predict probabiliies instead of class labels
 #' lrn = makeLearner("classif.lda", predict.type = "prob")
 #' model = train(lrn, classif.task)
 #' f = forecast(model, h = 10)

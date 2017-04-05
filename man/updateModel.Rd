@@ -38,7 +38,7 @@ The row names of the input \code{task} or \code{newdata} are preserved in the ou
 }
 \examples{
 dat = data.frame(arma_test = arima.sim(model = list(ar = c(.5,.2), ma = c(.4), order = c(2,0,1)), n = 100))
-dat$dates = (as.POSIXlt("1992-01-14")) + lubridate::days(1:100)
+dat$dates =  as.POSIXct("1992-01-14") + 0:99
 Timeregr.task = makeForecastRegrTask(id = "test", data = dat,
 target = "arma_test", frequency = 1L, date.col = "dates")
 arm = makeLearner("fcregr.Arima", h = 1)

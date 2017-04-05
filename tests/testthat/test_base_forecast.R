@@ -95,7 +95,7 @@ test_that("forecast correctly propagates exception in predictLearner", {
 test_that("setThreshold does not produce NAs for extreme thresholds", {
   # we had bug / issue 168 here
   data(GermanCredit, package = "caret")
-  GermanCredit.dates = as.POSIXct("1992-01-01") + lubridate::days(1:nrow(GermanCredit))
+  GermanCredit.dates = as.POSIXct("1992-01-14") + 1:nrow(GermanCredit)
   credit.task.lag = makeClassifTask(data = GermanCredit[,"Class",drop = FALSE], target = "Class")
   credit.task.lag = createLagDiffFeatures(credit.task.lag, lag = 1:5L, date.col = GermanCredit.dates)
   lrn = makeLearner("classif.rpart", predict.type = "prob")

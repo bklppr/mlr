@@ -35,7 +35,7 @@
 #' @examples
 #' set.seed(1234)
 #' dat = data.frame(arima.sim(model = list(ar = c(.5,.2), ma = c(.4), order = c(2,0,1)), n = 200))
-#' times = data.frame((as.POSIXlt("1992-01-14")) + lubridate::days(1:200))
+#' times = as.POSIXct("1992-01-14") + 0:199
 #' colnames(dat) = c("arma_test")
 #' regr.task = makeRegrTask(id = "Lagged ML model", data = dat, target = "arma_test")
 #' regr.task.lag = createLagDiffFeatures(regr.task, lag = 1L:10L, difference = 0L, date.col = times)

@@ -142,7 +142,6 @@ makeTask = function(type, data, weights = NULL, blocking = NULL, fixup.data = "w
   )
 }
 
-#' @importFrom lubridate is.POSIXt
 checkTaskData = function(data, cols = names(data)) {
   fun = function(cn, x) {
     if (is.numeric(x)) {

@@ -159,7 +159,7 @@ mfcregr.task = makeMultiForecastRegrTask("mfcregrtask", data = mfcregr.df, targe
 # Objects for Forecasting with regular tasks
 #########
 binaryclass.df.lag = binaryclass.df[,binaryclass.target,drop = FALSE]
-binaryclass.df.lag.dates = as.POSIXct("1992-01-01") + lubridate::days(1:nrow(binaryclass.df.lag))
+binaryclass.df.lag.dates =  as.POSIXct("1992-01-14") + 1:nrow(binaryclass.df.lag)
 binaryclass.train.inds.lag = c(1:150)
 binaryclass.test.inds.lag  = setdiff(1:nrow(binaryclass.df), binaryclass.train.inds)
 binaryclass.train.lag = binaryclass.df.lag[binaryclass.train.inds.lag, ,drop = FALSE]
@@ -171,7 +171,7 @@ binaryclass.task.lag = createLagDiffFeatures(binaryclass.task.lag,lag = 1L:5L, n
 binaryclass.h = length(binaryclass.test.inds.lag)
 
 multiclass.df.lag = multiclass.df[,multiclass.target,drop = FALSE]
-multiclass.df.lag.dates = as.POSIXct("1992-01-01") + lubridate::days(1:nrow(multiclass.df.lag))
+multiclass.df.lag.dates = as.POSIXct("1992-01-14") + 1:nrow(multiclass.df.lag)
 multiclass.train.inds.lag = c(1:130)
 multiclass.test.inds.lag  = setdiff(1:150, multiclass.train.inds.lag)
 multiclass.train.lag = multiclass.df.lag[multiclass.train.inds.lag, ]
@@ -182,7 +182,7 @@ multiclass.task.lag = createLagDiffFeatures(multiclass.task.lag, lag = 1L:5L, na
 multiclass.h = length(multiclass.test.inds.lag)
 
 multilabel.df.lag = multilabel.df[,multilabel.target,drop = FALSE]
-multilabel.df.lag.dates = as.POSIXct("1992-01-01") + lubridate::days(1:nrow(multilabel.df.lag))
+multilabel.df.lag.dates = as.POSIXct("1992-01-14") + 1:nrow(multilabel.df.lag)
 multilabel.train.inds.lag = c(1:130)
 multilabel.test.inds.lag  = setdiff(1:150, multilabel.train.inds.lag)
 multilabel.train.lag = multilabel.df.lag[multilabel.train.inds.lag, ]
@@ -193,7 +193,7 @@ multilabel.task.lag = createLagDiffFeatures(multilabel.task.lag, lag = 1L:5L, na
 multilabel.h = 20
 
 regr.df.lag = regr.df[,regr.target,drop = FALSE]
-regr.df.lag.dates = as.POSIXct("1992-01-01") + lubridate::days(1:nrow(regr.df.lag))
+regr.df.lag.dates = as.POSIXct("1992-01-14") + 1:nrow(regr.df.lag)
 regr.train.inds.lag = 1:496
 regr.test.inds.lag  = setdiff(1:nrow(regr.df.lag), regr.train.inds.lag)
 regr.train.lag = regr.df.lag[regr.train.inds.lag, ,drop = FALSE]
@@ -208,7 +208,7 @@ surv.target = c("time", "status")
 
 ## I have no idea if forecasting will work for survival tasks
 surv.df.lag = surv.df[,surv.target,drop = FALSE]
-surv.df.lag.dates = as.POSIXct("1992-01-01") + lubridate::days(1:nrow(surv.df.lag))
+surv.df.lag.dates = as.POSIXct("1992-01-14") + 1:nrow(surv.df.lag)
 surv.train.lag = surv.df.lag[surv.train.inds, ]
 surv.test.lag  = surv.df.lag[surv.test.inds, ]
 surv.task.lag = makeSurvTask("survtask", data = surv.df.lag, target = surv.target)
