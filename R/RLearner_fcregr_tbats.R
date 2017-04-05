@@ -1,5 +1,4 @@
 #'@export
-#' @importFrom xts try.xts reclass
 makeRLearner.fcregr.tbats = function() {
   makeRLearnerForecastRegr(
     cl = "fcregr.tbats",

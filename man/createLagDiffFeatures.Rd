@@ -58,7 +58,6 @@ A logical to denote whether the original unlagged features should be returned}
 }
 \description{
 Replace all variables with their generated lagged and differenced variables.
-Uses the \code{xts} framework for developing lags and is only available for \code{TimeTasks}.
 }
 \examples{
 set.seed(1234)

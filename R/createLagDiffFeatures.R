@@ -1,8 +1,6 @@
 #' @title Generate lags and differences for feature variables
 #'
-#' @description
-#' Replace all variables with their generated lagged and differenced variables.
-#' Uses the \code{xts} framework for developing lags and is only available for \code{TimeTasks}.
+#' @description Replace all variables with their generated lagged and differenced variables.
 #'
 #' @template arg_taskdf
 #' @template arg_taskdf_target
