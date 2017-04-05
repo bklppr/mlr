@@ -55,6 +55,12 @@ A logical to denote whether the data should be padded to the original size with 
 
 \item{return.nonlag}{[\code{logical}]\cr
 A logical to denote whether the original unlagged features should be returned}
+
+\item{grouping}{[\code{character}]\cr
+The name of the column to be passed to data.table's \code{by} function. This will take lags and differences wrt the groups.}
+
+\item{date.col}{[code{data.frame}]
+The dates for each observation. In the case of a forecasting task, these will be taken from the task description.}
 }
 \description{
 Replace all variables with their generated lagged and differenced variables.

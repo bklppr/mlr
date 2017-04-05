@@ -1,3 +1,5 @@
+# dates has to be defined to avoid a warning in R CMD CHECK
+globalVariables(c("dates"))
 #' @title Generate lags and differences for feature variables
 #'
 #' @description Replace all variables with their generated lagged and differenced variables.
@@ -28,6 +30,10 @@
 #' An integer denoting the period to seasonaly difference over
 #' @param return.nonlag [\code{logical}]\cr
 #' A logical to denote whether the original unlagged features should be returned
+#' @param grouping [\code{character}]\cr
+#' The name of the column to be passed to data.table's \code{by} function. This will take lags and differences wrt the groups.
+#' @param date.col [code{data.frame}]
+#' The dates for each observation. In the case of a forecasting task, these will be taken from the task description.
 #' @export
 #' @family eda_and_preprocess
 #' @examples

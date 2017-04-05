@@ -21,7 +21,8 @@
 #' @return [\code{\link{WrappedModel}}].
 #' @export
 #' @examples
-#' dat = data.frame(arma_test = arima.sim(model = list(ar = c(.5,.2), ma = c(.4), order = c(2,0,1)), n = 100))
+#' dat = data.frame(arma_test = arima.sim(model = list(ar = c(.5,.2),
+#'  ma = c(.4), order = c(2,0,1)), n = 100))
 #' dat$dates =  as.POSIXct("1992-01-14") + 0:99
 #' Timeregr.task = makeForecastRegrTask(id = "test", data = dat,
 #' target = "arma_test", frequency = 1L, date.col = "dates")
@@ -189,13 +190,9 @@ updateModel = function(object, task, newdata, subset, weights = NULL, ...) {
 #' @export
 updateLearner = function(.learner, .model, .newdata = NULL, .task, .truth, .weights, ...) {
   lmod = getLearnerModel(.model)
-  if (inherits(lmod, "NoFeaturesModel")) {
-    predict_nofeatures(.model, .newdata)
-  } else {
     if (.learner$type != "fcregr" && .learner$type != "mfcregr")
       assertDataFrame(.newdata, min.rows = 1L, min.cols = 1L)
     UseMethod("updateLearner")
-  }
 }
 
 updateLearner2 = function(.learner, .model, .newdata = NULL, .task, .truth, .weights, ...) {

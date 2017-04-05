@@ -101,7 +101,7 @@ makeStackedLearner = function(base.learners, super.learner = NULL, predict.type 
     if (!is.null(predict.type)) super.learner = setPredictType(super.learner, predict.type)
   }
 
-  baseType = unique(extractSubList(base.learners, "type"))
+  base.type = unique(extractSubList(base.learners, "type"))
   if (!is.null(resampling) & method != "stack.cv" & method != "growing.cv") {
     stop("No resampling needed for this method")
   }

@@ -160,7 +160,7 @@ makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
 
     .data = rbind(.data,NA)
     # The dates here will be thrown away later
-    times = as.POSIXct("1992-01-14") + lubridate::days(1:I(nrow(.data)))
+    times =  as.POSIXct("1992-01-14") + 0:199
     if (i == 1) {
       print(.data)
       print(forecasts)
@@ -184,8 +184,8 @@ makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
       .data[nrow(.data),] = getPredictionResponse(pred)
     } else if (pred$predict.type == "prob") {
       #FIXME: I don't know regex well enough to do this in one sweep
-      colnames(pred$data) = stringr::str_replace(colnames(pred$data),"prob","")
-      colnames(pred$data) = stringr::str_replace(colnames(pred$data),"[.]","")
+      colnames(pred$data) = str_replace(colnames(pred$data),"prob","")
+      colnames(pred$data) = str_replace(colnames(pred$data),"[.]","")
       .data[nrow(.data),] =pred$data$response
       pred$data$response = NULL
       forecasts[[i]] = pred$data

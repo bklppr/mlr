@@ -14,7 +14,7 @@ test_that("Multivariate Forecast learning", {
 
   # train predict eval
   mod = train(lrn, mfcregr.task)
-  pred = predict(mod, newdata = mfcregr.test)
+  pred = predict(mod, newdata = mfcregr.test[, seq_len(4), drop = FALSE])
   p = performance(pred, task = mfcregr.task)
   expect_true(!is.na(p))
   # resample
