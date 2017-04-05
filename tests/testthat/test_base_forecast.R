@@ -16,7 +16,7 @@ test_that("forecast tasks and learner", {
   pred = predict(mod, newdata = fcregr.test)
   p = performance(pred)
   expect_true(!is.na(p))
-  # with newdata xts
+  # with newdata df
   pred = predict(mod, newdata = fcregr.test)
   p = performance(pred)
   expect_true(!is.na(p))
@@ -25,8 +25,8 @@ test_that("forecast tasks and learner", {
   expect_true(!is.na(r$aggr))
   # Learning with Lambert W
   lrn = makePreprocWrapperLambert(lrn, type = "h", verbose = FALSE)
-  fcregr.xts2 = fcregr.xts
-  fcregr.task2 = makeForecastRegrTask("fcregr", data = fcregr.xts2, target = fcregr.target, check.data = FALSE)
+  fcregr.df2 = fcregr.df
+  fcregr.task2 = makeForecastRegrTask("fcregr", data = fcregr.df2, target = fcregr.target, check.data = FALSE)
   expect_error(mod = train(lrn, fcregr.task2))
   # Learner with Hyperparameters
   lrn = makeLearner("fcregr.Arima", par.vals = list(order = c(2,0,1), include.mean = FALSE))
@@ -43,9 +43,9 @@ test_that("forecast with regular tasks", {
 
   # multiclass response works
   cm2 = train(makeLearner("classif.lda"), multiclass.task.lag, subset = inds)
-  cp2  = forecast(cm2, h = multiclass.h, newdata = data[-inds,,drop=FALSE])
-  cp2b = forecast(cm2, h = multiclass.h, newdata = data[-inds,-1,drop=FALSE])
-
+  cp2  = forecast(cm2, h = multiclass.h, newdata = data[-inds, ,drop = FALSE])
+  cp2b = forecast(cm2, h = multiclass.h, newdata = data[-inds,-1 ,drop = FALSE])
+  cp2c = forecast(cm2, h = multiclass.h)
   # multiclass probs
   wl.lda = makeLearner("classif.lda", predict.type = "prob")
   cm3 = train(wl.lda, multiclass.task.lag, subset = inds)
@@ -95,9 +95,9 @@ test_that("forecast correctly propagates exception in predictLearner", {
 test_that("setThreshold does not produce NAs for extreme thresholds", {
   # we had bug / issue 168 here
   data(GermanCredit, package = "caret")
-  rownames(GermanCredit) = as.POSIXct("1992-01-01") + lubridate::days(1:nrow(GermanCredit))
+  GermanCredit.dates = as.POSIXct("1992-01-01") + lubridate::days(1:nrow(GermanCredit))
   credit.task.lag = makeClassifTask(data = GermanCredit[,"Class",drop = FALSE], target = "Class")
-  credit.task.lag = createLagDiffFeatures(credit.task.lag, lag = 1:5L)
+  credit.task.lag = createLagDiffFeatures(credit.task.lag, lag = 1:5L, date.col = GermanCredit.dates)
   lrn = makeLearner("classif.rpart", predict.type = "prob")
   mod = train(lrn, credit.task.lag)
   p1 = forecast(mod,h = 10L)
@@ -112,9 +112,4 @@ test_that("predict works with data.table as newdata", {
   expect_warning(forecast(mod, newdata = data.table(iris[1:5,]), h = 5), regexp = "Provided data for prediction is not a pure data.frame but from class data.table, hence it will be converted.")
 })
 
-test_that("predict works with xts as newdata", {
-  lrn = makeLearner("classif.lda")
-  mod = train(lrn, multiclass.task.lag)
-  test.data = xts::as.xts(iris[1:5,], order.by = as.POSIXct("1992-01-14") + lubridate::days(1:5))
-  expect_warning(forecast(mod, newdata = test.data, h = 5), regexp = "Provided data for prediction is not a pure data.frame but from class xts, hence it will be converted.")
-})
+

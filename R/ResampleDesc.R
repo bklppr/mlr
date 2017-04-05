@@ -33,7 +33,7 @@
 #'   \dQuote{CV} for cross-validation, \dQuote{LOO} for leave-one-out, \dQuote{RepCV} for
 #'   repeated cross-validation, \dQuote{Bootstrap} for out-of-bag bootstrap, \dQuote{Subsample} for
 #'   subsampling, \dQuote{Holdout} for holdout, \dQuote{GrowingCV} for growing window, and
-#'    \dQuote{FixedCV} for fixed windowing.
+#'    \dQuote{FixedCV} for fixed windowing. Note that \dQuote{GrowingCV} and \dQuote{FixedCV} are for forecasting.
 #' @param predict [\code{character(1)}]\cr
 #'   What to predict during resampling: \dQuote{train}, \dQuote{test} or \dQuote{both} sets.
 #'   Default is \dQuote{test}.
@@ -49,12 +49,10 @@
 #'   \item{folds [\code{integer(1)}]}{Folds in the repeated CV for \code{RepCV}.
 #'     Here \code{iters = folds * reps}. Default is 10.}
 #'   \item{horizon [\code{integer(1)}]}{Number of observations to forecast for \code{GrowthCV}
-#'    and \code{FixedCV}.}
-#'   \item{initial.window [\code{integer(1)}]}{ Initial number of observations to start with
-#'    in \code{GrowthCV} and \code{FixedCV}.}
-#'   \item{size [\code{integer(1)}]}{Number of observations in data set. Used for \code{GrowthCV}
-#'    and \code{FixedCV}.}
-#'   \item{skip [\code{integer(1)}]}{ Number of cross validations to skip in \code{GrowthCV} and \code{FixedCV}.}
+#'    and \code{FixedCV}. Default is 1}
+#'   \item{initial.window [\code{numeric(1)}]}{Fraction of observations to start with
+#'    in \code{GrowthCV} and \code{FixedCV}. Default is 0.5}
+#'   \item{skip [\code{numeric(1)}]}{ Fraction of windows to skip in \code{GrowthCV} and \code{FixedCV}. Default is 0}
 #'   }
 #' @param stratify [\code{logical(1)}]\cr
 #'   Should stratification be done for the target variable?
@@ -84,12 +82,12 @@
 #' # Holdout a.k.a. test sample estimation
 #' makeResampleDesc("Holdout")
 makeResampleDesc = function(method, predict = "test", ..., stratify = FALSE, stratify.cols = NULL) {
-  assertChoice(method, choices = c("Holdout", "CV", "LOO",  "RepCV", "Subsample", "Bootstrap","GrowingCV","FixedCV"))
+  assertChoice(method, choices = c("Holdout", "CV", "LOO",  "RepCV", "Subsample", "Bootstrap", "GrowingCV", "FixedCV"))
   assertChoice(predict, choices = c("train", "test", "both"))
   assertFlag(stratify)
   if (stratify && method == "LOO")
     stop("Stratification cannot be done for LOO!")
-  if (stratify && ! is.null(stratify.cols))
+  if (stratify && !is.null(stratify.cols))
     stop("Arguments 'stratify' and 'stratify.cols' are mutually exclusive!")
   d = do.call(stri_paste("makeResampleDesc", method), list(...))
   d$predict = predict
@@ -149,50 +147,20 @@ makeResampleDescRepCV = function(reps = 10L, folds = 10L) {
   makeResampleDescInternal("repeated cross-validation", iters = folds * reps, folds = folds, reps = reps)
 }
 
-makeResampleDescFixedCV = function(horizon = 1L , initial.window = .5, size = 100L, skip = .01  ) {
-  assertIntegerish(horizon, lower = 1L, upper = Inf)
-  assertNumeric(initial.window, lower = 1E-15, upper = 1)
-  assertIntegerish(size, lower = 1L, upper = Inf)
-  assertNumeric(skip, lower = 0L, upper = Inf)
-  initial.window.desc = floor(initial.window * size)
-  skip.desc = floor(skip * size)
-  stops = seq(from = 1, to = size)[initial.window.desc:I(size - horizon)]
-  starts = stops - initial.window.desc + 1
-  thin = function(x, skip = 2) {
-    n = length(x)
-    x[seq(1, n, by = skip.desc)]
-  }
-  if (skip > 0)
-    iters = length(thin(starts, skip = skip + 1))
-  else
-    iters = length(starts)
-
-  makeResampleDescInternal("fixed", iters = iters,  horizon = horizon,
-                           initial.window = initial.window, skip = skip,
-                           initial.window.desc = initial.window.desc, skip.desc = skip.desc)
+makeResampleDescFixedCV = function(horizon = 1L, initial.window = .5, skip = 0) {
+  horizon = asInteger(horizon, lower = 1L, upper = Inf)
+  assertNumeric(initial.window, lower = 0, upper = 1)
+  assertNumeric(skip, lower = 0L, upper = 1)
+  makeResampleDescInternal("Fixed", iters = NA_integer_,  horizon = horizon,
+    initial.window = initial.window, skip = skip)
 }
 
-makeResampleDescGrowingCV = function(horizon = 1L , initial.window = 10L, size = 100L, skip = 0L) {
-  assertIntegerish(horizon, lower = 1L, upper = Inf)
-  assertNumeric(initial.window, lower = 1E-15, upper = 1)
-  assertIntegerish(size, lower = 1L, upper = Inf)
+makeResampleDescGrowingCV = function(horizon = 1L, initial.window = .5, skip = 0) {
+  horizon = asInteger(horizon, lower = 1L, upper = Inf)
+  assertNumeric(initial.window, lower = 0, upper = 1)
   assertNumeric(skip, lower = 0L, upper = 1)
-  initial.window.desc = floor(initial.window * size)
-  skip.desc = floor(skip * size)
-  stops = seq(from = 1, to = size)[initial.window.desc:I(size - horizon)]
-  starts = rep(1, length(stops))
-  thin = function(x, skip = 2) {
-    n = length(x)
-    x[seq(1, n, by = skip.desc)]
-  }
-  if (skip > 0)
-    iters = length(thin(starts, skip = skip + 1))
-  else
-    iters = length(starts)
-
-  makeResampleDescInternal("growing", iters = iters, horizon = horizon,
-                           initial.window = initial.window, skip = skip,
-                           initial.window.desc = initial.window.desc, skip.desc = skip.desc)
+  makeResampleDescInternal("Growing", iters = NA_integer_, horizon = horizon,
+    initial.window = initial.window, skip = skip)
 }
 
 
@@ -224,8 +192,8 @@ print.RepCVDesc = function(x, ...) {
 
 #' @export
 print.GrowingCVDesc = function(x, ...) {
-  catf("Window description:\n %s with %i iterations:\n %i observations in initial window and %i horizon.",
-       x$id, x$iters, x$initial.window.desc, x$horizon)
+  catf("Window description:\n %s: %.2f %% of observations in initial window and a horizon of %i.",
+    x$id, x$initial.window * 100, x$horizon)
   catf("Predict: %s", x$predict)
   catf("Stratification: %s", x$stratify)
 }
@@ -233,8 +201,8 @@ print.GrowingCVDesc = function(x, ...) {
 
 #' @export
 print.FixedCVDesc = function(x, ...) {
-  catf("Window description:\n %s with %i iterations:\n %i observations in initial window and %i horizon.",
-       x$id, x$iters, x$initial.window.desc, x$horizon)
+  catf("Window description:\n %s: %.2f %% of observations in initial window and a horizon of %i.",
+    x$id, x$initial.window * 100, x$horizon)
   catf("Predict: %s", x$predict)
   catf("Stratification: %s", x$stratify)
 }

@@ -52,10 +52,10 @@ testSimple = function(t.name, df, target, train.inds, old.predicts, parset = lis
   if (length(target) == 0)
     task = makeClusterTask(data = df)
   # This is almost guranteed to break
-  else if (xts::is.xts(df) && ncol(df) > 1)
-    task = makeMultiForecastRegrTask(data = df, target = target)
-  else if (xts::is.xts(df))
-    task = makeForecastRegrTask(data = df, target = target)
+  else if (is.POSIXt(df$dates) && ncol(df) > 2)
+    task = makeMultiForecastRegrTask(data = df, target = target, date.col = "dates")
+  else if (is.POSIXt(df$dates))
+    task = makeForecastRegrTask(data = df, target = target, date.col = "dates")
   else if (is.numeric(df[, target]))
     task = makeRegrTask(data = df, target = target)
   else if (is.factor(df[, target]))
@@ -78,12 +78,12 @@ testSimple = function(t.name, df, target, train.inds, old.predicts, parset = lis
     if (class(task)[1] == "MultilabelTask") {
       rownames(cp$data) = NULL
       expect_equal(unname(cp$data[, substr(colnames(cp$data), 1, 8) == "response"]), unname(old.predicts))
-    } else if (any(class(task) == "MultiForecastRegrTask")) {
+    } else if (inherits(task, "MultiForecastRegrTask")) {
       expect_equal(unname(as.matrix(cp$data[, substr(colnames(cp$data), 1, 8) == "response"]), force = TRUE),
                    unname(as.matrix(old.predicts)))
     } else if (is.numeric(cp$data$response) && is.numeric(old.predicts)) {
       expect_equal(unname(cp$data$response), unname(old.predicts), tol = 1e-5)
-    } else{
+    } else {
       expect_equal(as.character(cp$data$response), as.character(old.predicts))
     }
     }
@@ -282,8 +282,8 @@ testSimpleUpdate = function(t.name, target, train.df, update.df,
   # FIXME this heuristic will backfire eventually
   if (length(target) == 0)
     task = makeClusterTask(data = train.df)
-  else if (xts::is.xts(train.df))
-    task = makeForecastRegrTask(data = train.df, target = target)
+  else if (is.POSIXt(train.df$dates))
+    task = makeForecastRegrTask(data = train.df, target = target, date.col = "dates")
   else if (is.numeric(train.df[, target]))
     task = makeRegrTask(data = train.df, target = target)
   else if (is.factor(train.df[, target]))
@@ -316,16 +316,17 @@ testSimpleUpdate = function(t.name, target, train.df, update.df,
   }
 }
 
-testSimpleParsetsUpdate = function(t.name, df, target,update.inds, train.inds,
+
+testSimpleParsetsUpdate = function(t.name, df, target, update.inds, train.inds,
                                    test.inds, old.predicts.list, parset.list) {
 
-  train.df = df[train.inds,]
-  update.df = df[update.inds]
-  test.df = df[test.inds,]
+  train.df = df[train.inds, ]
+  update.df = df[update.inds, ]
+  test.df = df[test.inds, ]
 
-  for (i in 1:length(parset.list)) {
+  for (i in seq_len(length(parset.list))) {
     parset = parset.list[[i]]
     old.predicts = old.predicts.list[[i]]
-    testSimpleUpdate(t.name,target, train.df, update.df, test.df, old.predicts, parset)
+    testSimpleUpdate(t.name, target, train.df, update.df, test.df, old.predicts, parset)
   }
 }

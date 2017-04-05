@@ -76,11 +76,11 @@ updateLearner.fcregr.nnetar = function(.learner, .model, .newdata, .task, .truth
   target = getTaskTargetNames(.task)
   data = ts(.truth, start = 1, frequency = .task$task.desc$frequency)
   if (is.null(.weights)) {
-    if (ncol(.newdata) != 0) {
+    if (ncol(.newdata) == 0) {
+      forecast::nnetar(y = data, model = .model$learner.model, ...)
+    } else {
       .newdata = ts(.newdata, start = 1, frequency = .task$task.desc$frequency)
       forecast::nnetar(y = data,xreg = .newdata, model = .model$learner.model, ...)
-    } else {
-      forecast::nnetar(y =data, model = .model$learner.model, ...)
     }
   } else {
     if (ncol(.newdata) != 0) {

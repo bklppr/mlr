@@ -1,5 +1,4 @@
 #'@export
-#' @importFrom xts try.xts reclass
 makeRLearner.fcregr.arfima = function() {
   makeRLearnerForecastRegr(
     cl = "fcregr.arfima",

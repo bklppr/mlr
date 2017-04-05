@@ -13,7 +13,7 @@ test_that("fcregr_bats", {
 
   for (i in 1:length(parset.list)) {
     parset = parset.list[[i]]
-    pars = list(y = ts(fcregr.train, start = 1, frequency = 1L))
+    pars = list(y = ts(fcregr.train$test_data, start = 1, frequency = 1L))
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
     capture.output({
@@ -29,7 +29,7 @@ test_that("fcregr_bats", {
   parset.list[[3]]$h = 1L
   parset.list[[4]]$h = 1L
   parset.list[[5]]$h = 1L
-  testSimpleParsets("fcregr.bats", fcregr.xts, fcregr.target,
+  testSimpleParsets("fcregr.bats", fcregr.df, fcregr.target,
                     fcregr.train.inds, old.predicts.list, parset.list)
 })
 
@@ -46,14 +46,14 @@ test_that("fcregr_bats_update",{
 
   for (i in 1:length(parset.list)) {
     parset = parset.list[[i]]
-    pars = list(y = as.ts(fcregr.update.train))
+    pars = list(y = as.ts(fcregr.update.train$test_data))
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
     capture.output({
       m = do.call(forecast::bats, pars)
     })
     parset$model = m
-    pars.update = list(y = as.ts(fcregr.update.update))
+    pars.update = list(y = as.ts(fcregr.update.update$test_data))
     pars.update = c(pars.update,parset)
     set.seed(getOption("mlr.debug.seed"))
     capture.output({
@@ -69,7 +69,7 @@ test_that("fcregr_bats_update",{
   parset.list[[3]]$h = 1L
   parset.list[[4]]$h = 1L
   parset.list[[5]]$h = 1L
-  testSimpleParsetsUpdate("fcregr.bats", fcregr.update.xts, fcregr.target,
+  testSimpleParsetsUpdate("fcregr.bats", fcregr.update.df, fcregr.target,
                           fcregr.update.update.inds, fcregr.update.train.inds,
                           fcregr.update.test.inds, old.predicts.list, parset.list)
 })

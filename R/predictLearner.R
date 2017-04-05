@@ -98,8 +98,7 @@ checkPredictLearnerOutput = function(learner, model, p) {
         stopf("predictLearner for %s has not returned a numeric matrix with 2 columns!", learner$id)
     }
   } else if (learner$type == "fcregr") {
-    if (learner$predict.type == "response") {
-      if (cl != "numeric" & cl != "ts")
+    if (learner$predict.type == "response" && cl != "numeric" && cl != "ts") {
         stopf("predictLearner for %s has returned a class %s instead of a numeric!", learner$id, cl)
     } else if (learner$predict.type == "quantile") {
       if (!is.matrix(p))

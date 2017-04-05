@@ -5,32 +5,47 @@
 #' or 'All'. Targeting a single series will produce a single output similar to univariate tasks while
 #' treating all other variables endogeneously. targeting 'All' will forecast all variables forward.
 #' @export
-#' @importFrom zoo index coredata
 makeMultiForecastRegrTask = function(id = deparse(substitute(data)), data, target,
-                                weights = NULL, blocking = NULL, fixup.data = "warn",
-                                check.data = TRUE, frequency = 1L) {
-  assertString(id)
-  assertClass(data,"xts")
+  weights = NULL, blocking = NULL, date.col = "dates", frequency = 1L, fixup.data = "warn",
+  check.data = TRUE) {
+
   assertString(target)
   assertChoice(target, c("all", colnames(data)))
-  assertInteger(frequency, lower = 0L, max.len = 1L)
+
+  assertString(id)
+  assertClass(data, "data.frame")
+  assertString(date.col)
+  frequency = asCount(frequency)
   assertChoice(fixup.data, choices = c("no", "quiet", "warn"))
   assertFlag(check.data)
-
-
   is.target.all = target == "all"
-  row.names = index(data)
   col.names = colnames(data)
-  assert(
-    checkClass(row.names, "POSIXlt"),
-    checkClass(row.names, "POSIXt"),
-    checkClass(row.names, "POSIXct")
-    )
-  data = data.frame(row.names = row.names, coredata(data))
-
+  # Need to check that dates
+  # 1. Exist
+  # 2. Are unique
+  # 3. Follow POSIXct convention
+  dates = data[, date.col, drop = FALSE]
+  if (check.data) {
+    if (!is.target.all) {
+      assertNumeric(data[[target]], any.missing = FALSE, finite = TRUE, .var.name = target)
+    } else if (is.target.all) {
+      lapply(data,assertNumeric, any.missing = FALSE, finite = TRUE)
+    }
+    if (any(duplicated(dates)))
+      stop(catf("Multiple observations for %s. Dates must be unique.", dates[any(duplicated(dates)), ]))
+    if (!is.POSIXt(dates[, 1]))
+      stop(catf("Dates are of type %s, but must be in a POSIXt format", class(dates[, 1])))
+  }
   if (fixup.data != "no" && all(!is.target.all)) {
     if (is.integer(data[[target]]))
       data[[target]] = as.double(data[[target]])
+    if (is.unsorted(dates[, 1])) {
+      if (fixup.data == "warn")
+        warning("Dates and data will be sorted in ascending order")
+      date.order = order(dates)
+      data = data[date.order, , drop = FALSE]
+      dates = dates[date.order, , drop = FALSE]
+    }
   } else if (fixup.data != "no") {
     is.int = vlapply(data, is.integer)
     if (all(is.int)) {
@@ -38,25 +53,20 @@ makeMultiForecastRegrTask = function(id = deparse(substitute(data)), data, targe
       data = as.data.frame(row.names = row.names, data)
     }
   }
+  # Remove the date column and add it as the rownames
+  data = data[, date.col != colnames(data), drop = FALSE]
 
   if (is.target.all)
     target = colnames(data)
 
   task = makeSupervisedTask("mfcregr", data, target, weights, blocking, fixup.data = fixup.data, check.data = check.data)
-
-  if (check.data && !is.target.all) {
-    assertNumeric(data[[target]], any.missing = FALSE, finite = TRUE, .var.name = target)
-  } else if (check.data && is.target.all) {
-    lapply(data,assertNumeric, any.missing = FALSE, finite = TRUE)
-  }
-
-  task$task.desc = makeMultiForecastRegrTaskDesc(id, data, target, weights, blocking, frequency)
+  task$task.desc = makeMultiForecastRegrTaskDesc(id, data, target, weights, blocking, frequency, dates)
   addClasses(task, c("MultiForecastRegrTask","TimeTask"))
 }
 
-makeMultiForecastRegrTaskDesc = function(id, data, target, weights, blocking, frequency) {
+makeMultiForecastRegrTaskDesc = function(id, data, target, weights, blocking, frequency, dates) {
   td = makeTaskDescInternal("mfcregr", id, data, target, weights, blocking)
-  td$dates = c(rownames(data)[1], rownames(data)[nrow(data)])
+  td$dates = dates
   td$frequency = frequency
   td$col.names = colnames(data)
   addClasses(td, c("MultiForecastRegrTaskDesc", "SupervisedTaskDesc"))
@@ -70,7 +80,7 @@ print.MultiForecastRegrTask = function(x, print.weights = TRUE, ...) {
   catf("Type: %s", td$type)
   catf("Target: %s", stri_paste(td$target, collapse = " "))
   catf("Observations: %i", td$size)
-  catf("Dates:\n Start: %s \n End:   %s", td$dates[1], td$dates[2])
+  catf("Dates:\n Start: %s \n End:   %s", td$dates[1, ], td$dates[nrow(td$dates), ])
   catf("Frequency: %i", td$frequency)
   catf("Features:")
   catf(printToChar(td$n.feat, collapse = "\n"))

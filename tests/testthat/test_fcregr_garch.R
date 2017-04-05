@@ -22,7 +22,7 @@ test_that("fcregr_garch", {
 
   for (i in 1:length(parset.list)) {
     parset = parset.list[[i]]
-    pars = list(data = ts(fcregr.train, start = 1, frequency = 1L))
+    pars = list(data = ts(fcregr.train$test_data, start = 1, frequency = 1L))
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
     capture.output({
@@ -52,6 +52,6 @@ test_that("fcregr_garch", {
     list(stationarity = 1, fixed.se = 0, scale = 0, rec.init = .8, n.ahead = 1L),
     list(n.ahead = 1L)
   )
-  testSimpleParsets("fcregr.garch", fcregr.xts, fcregr.target,
+  testSimpleParsets("fcregr.garch", fcregr.df, fcregr.target,
                     fcregr.train.inds, old.predicts.list, parset.list)
 })

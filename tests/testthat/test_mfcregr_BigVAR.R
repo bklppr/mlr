@@ -22,7 +22,7 @@ test_that("mfcregr_BigVAR", {
 
   for (i in 1:length(parset.list)) {
     parset = parset.list[[i]]
-    pars = list(Y = as.matrix(mfcregr.train))
+    pars = list(Y = as.matrix(mfcregr.train[,-5]))
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
     capture.output({
@@ -34,7 +34,7 @@ test_that("mfcregr_BigVAR", {
     set.seed(getOption("mlr.debug.seed"))
     p = BigVAR::predict(m, n.ahead = 1L)
     p = as.data.frame(t(p))
-    colnames(p) = colnames(mfcregr.train)
+    colnames(p) = colnames(mfcregr.train)[1:4]
     #rownames(p) = as.character(rownames(p))
     old.predicts.list[[i]] = p
   }
@@ -45,7 +45,7 @@ test_that("mfcregr_BigVAR", {
     parset.list[[i]]$predict.type = "response"
     parset.list[[i]]$predict.threshold = NULL
   }
-  testSimpleParsets("mfcregr.BigVAR", mfcregr.xts, mfcregr.target,
+  testSimpleParsets("mfcregr.BigVAR", mfcregr.df, mfcregr.target,
                     mfcregr.train.inds, old.predicts.list, parset.list)
 })
 

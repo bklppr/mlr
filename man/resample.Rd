@@ -45,12 +45,12 @@ bootstrapB632plus(learner, task, iters = 30, stratify = FALSE, measures,
   models = FALSE, keep.pred = TRUE, ...,
   show.info = getMlrOption("show.info"))
 
-growingcv(learner, task, horizon = 10L, initialWindow = 10L, size = 100L,
-  skip = 0L, measures, models = FALSE, keep.pred = TRUE, ...,
+growingcv(learner, task, horizon = 1, initial.window = 0.5, skip = 0,
+  measures, models = FALSE, keep.pred = TRUE, ...,
   show.info = getMlrOption("show.info"))
 
-fixedcv(learner, task, horizon = 10L, initialWindow = 10L, size = 100L,
-  skip = 0L, measures, models = FALSE, keep.pred = TRUE, ...,
+fixedcv(learner, task, horizon = 1L, initial.window = 0.5, skip = 0,
+  measures, models = FALSE, keep.pred = TRUE, ...,
   show.info = getMlrOption("show.info"))
 }
 \arguments{
@@ -117,10 +117,7 @@ See \code{\link{ResampleDesc}}.}
 \item{horizon}{[\code{integer(1)}]\cr
 See \code{\link{ResampleDesc}}.}
 
-\item{initialWindow}{[\code{integer(1)}]\cr
-See \code{\link{ResampleDesc}}.}
-
-\item{size}{[\code{integer(1)}]\cr
+\item{initial.window}{[\code{integer(1)}]\cr
 See \code{\link{ResampleDesc}}.}
 
 \item{skip}{[\code{integer(1)}]\cr

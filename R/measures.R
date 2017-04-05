@@ -109,19 +109,32 @@ mase = makeMeasure(
   properties = c("regr", "fcregr", "mfcregr", "req.pred", "req.truth", "req.task"),
   best = 0,
   worst = Inf,
-  fun = function(task, model, pred, feats, extra.args) {
-    truth  = getPredictionTruth(pred)
-    pred   = getPredictionResponse(pred)
+  fun = function(task, model, pred, feats, extra.args){
+    truth = getPredictionTruth(pred)
+    response = getPredictionResponse(pred)
     target = getTaskTargets(task)
-    error  = (truth-pred)
-    if (is.null(task$task.desc$frequency))
-      naive.forecast = diff(target)
-    else
-      naive.forecast = diff(target, lag = task$task.desc$frequency)
-    scale = mean(abs(naive.forecast))
-    mean(abs(error / scale))
+    frequency = getTaskDesc(task)$frequency
+    measureMASE(truth, response, target, frequency)
   }
 )
+
+#' @export measureMASE
+#' @rdname measures
+#' @param target [character(1)]
+#' The target variable from the training data
+#' @param frequency
+#' The seasonality of the data
+#' @format none
+measureMASE = function(truth, response, target, frequency) {
+  error  = truth - response
+  if (is.null(frequency)) {
+    naive.forecast = diff(target)
+  } else {
+    naive.forecast = diff(target, lag = frequency)
+  }
+  scale = mean(abs(naive.forecast))
+  mean(abs(error / scale))
+}
 
 #' @export measureSSE
 #' @rdname measures

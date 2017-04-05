@@ -127,9 +127,8 @@ makeStackedLearner = function(base.learners, super.learner = NULL, predict.type 
   #  stop("Predict type has to be specified within the super learner.")
   if ((method == "average" || method == "hill.climb") & use.feat)
     stop("The original features can not be used for this method")
-  #if (!inherits(resampling, "CVDesc") && !inherits(resampling, "GrowingCVDesc") && !inherits(resampling, "FixedCVDesc"))
-  #  stop("Currently only CV is allowed for resampling!")
-  # END Tests
+  if (!inherits(resampling, "CVDesc"))
+    stop("Currently only CV is allowed for resampling!")
   # lrn$predict.type is "response" by default change it using setPredictType
   lrn =  makeBaseEnsemble(
     id = "stack",
@@ -443,7 +442,7 @@ hillclimbBaseLearners = function(learner, task, replace = TRUE, init = 0, bagpro
 
   bls = learner$base.learners
   if (type != "regr" && type != "fcregr" && type != "mfcregr") {
-    for (i in 1:length(bls)) {
+    for (i in seq_along(bls)) {
       if (bls[[i]]$predict.type == "response")
         stop("Hill climbing algorithm only takes probability predict type for classification.")
     }

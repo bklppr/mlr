@@ -21,12 +21,10 @@
 #' @return [\code{\link{WrappedModel}}].
 #' @export
 #' @examples
-#' dat = arima.sim(model = list(ar = c(.5,.2), ma = c(.4), order = c(2,0,1)), n = 100)
-#' times = (as.POSIXlt("1992-01-14")) + lubridate::days(1:100)
-#' dat = xts::xts(dat,order.by = times, frequency = 1L)
-#' colnames(dat) = c("arma_test")
+#' dat = data.frame(arma_test = arima.sim(model = list(ar = c(.5,.2), ma = c(.4), order = c(2,0,1)), n = 100))
+#' dat$dates = (as.POSIXlt("1992-01-14")) + lubridate::days(1:100)
 #' Timeregr.task = makeForecastRegrTask(id = "test", data = dat,
-#' target = "arma_test", frequency = 1L)
+#' target = "arma_test", frequency = 1L, date.col = "dates")
 #' arm = makeLearner("fcregr.Arima", h = 1)
 #' trn = train(arm,Timeregr.task, subset = 1:99)
 #' armNew =updateModel(trn, Timeregr.task, newdata = dat[100,])
@@ -43,8 +41,10 @@ updateModel = function(object, task, newdata, subset, weights = NULL, ...) {
     stop("No new data supplied")
   assertClass(task, classes = "Task")
   size = getTaskSize(task)
-  if (xts::is.xts(newdata))
-    newdata = data.frame(row.names = index(newdata), newdata)
+  if (class(newdata)[1] != "data.frame") {
+    warningf("Provided data for prediction is not a pure data.frame but from class %s, hence it will be converted.",  class(newdata)[1])
+    newdata = as.data.frame(newdata)
+  }
   assertDataFrame(newdata, min.rows = 1L)
   size = nrow(newdata)
 
@@ -56,11 +56,8 @@ updateModel = function(object, task, newdata, subset, weights = NULL, ...) {
     else
       subset = asInteger(subset, min.len = 1L, any.missing = FALSE, lower = 1L, upper = size)
   }
-  if (missing(newdata)) {
-    newdata = getTaskData(task, subset)
-  } else {
-    newdata = newdata[subset,, drop = FALSE]
-  }
+  newdata = newdata[subset,setdiff(colnames(newdata), colnames(td$dates)), drop = FALSE]
+
 
   # if we saved a model and loaded it later just for prediction this is necessary
   requireLearnerPackages(learner)
@@ -77,6 +74,8 @@ updateModel = function(object, task, newdata, subset, weights = NULL, ...) {
   } else {
     truth = NULL
   }
+
+  if (any(vcapply(newdata, class) == "dates"))
 
   error = NA_character_
   # was there an error in building the model? --> return NAs

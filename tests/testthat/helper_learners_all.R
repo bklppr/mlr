@@ -81,10 +81,10 @@ testBasicLearnerProperties = function(lrn, task, hyperpars, pred.type = "respons
   }
   # check that quantile works and is > 0
   if (pred.type == "quantile") {
-    quantiles = p$data[,2:ncol(p$data)]
-    for (i in 1:ncol(quantiles)) {
-      expect_numeric(info = info, quantiles[,1], lower = Inf, finite = TRUE,
-                     any.missing = FALSE, len = getTaskSize(task))
+    quantiles = p$data[, -1, drop = FALSE]
+    for (i in seq_len(ncol(quantiles))) {
+      expect_numeric(info = info, quantiles[, i], lower = Inf, finite = TRUE,
+        any.missing = FALSE, len = getTaskSize(task))
     }
   }
 

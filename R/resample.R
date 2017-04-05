@@ -31,9 +31,7 @@
 #'   See \code{\link{ResampleDesc}}.
 #' @param horizon [\code{integer(1)}]\cr
 #'   See \code{\link{ResampleDesc}}.
-#' @param initialWindow [\code{integer(1)}]\cr
-#'   See \code{\link{ResampleDesc}}.
-#' @param size [\code{integer(1)}]\cr
+#' @param initial.window [\code{integer(1)}]\cr
 #'   See \code{\link{ResampleDesc}}.
 #' @param skip [\code{integer(1)}]\cr
 #'   See \code{\link{ResampleDesc}}.

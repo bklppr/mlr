@@ -23,12 +23,20 @@ test_that("propVectorToMatrix", {
 })
 
 test_that("listTaskTypes", {
+<<<<<<< HEAD
   expected = c("classif", "regr", "surv", "costsens", "cluster", "multilabel", "fcregr", "mfcregr")
+=======
+  expected = c("classif", "regr", "surv", "costsens", "cluster", "multilabel", "fcregr")
+>>>>>>> forecasting_base
   expect_equal(expected, listTaskTypes())
 })
 
 test_that("listLearnerProperties", {
+<<<<<<< HEAD
   expected = c("classif", "regr", "surv", "costsens", "cluster", "multilabel", "fcregr", "mfcregr")
+=======
+  expected = c("classif", "regr", "surv", "costsens", "cluster", "multilabel", "fcregr")
+>>>>>>> forecasting_base
   expect_equal(expected, listTaskTypes())
 })
 

@@ -4,14 +4,23 @@
 \alias{createLagDiffFeatures}
 \title{Generate lags and differences for feature variables}
 \usage{
-createLagDiffFeatures(obj, lag = 0L, difference = 0L, difference.lag = 1L,
-  cols = NULL, target = character(0L), seasonal.lag = 0L,
-  seasonal.difference = 0L, seasonal.difference.lag = 1L, frequency = 1L,
-  na.pad = TRUE, return.nonlag = TRUE)
+createLagDiffFeatures(obj, target = character(0L), lag = 0L,
+  difference = 0L, difference.lag = 0L, cols = NULL, seasonal.lag = 0L,
+  seasonal.difference = 0L, seasonal.difference.lag = 0L, frequency = 1L,
+  na.pad = FALSE, return.nonlag = TRUE, grouping = NULL, date.col)
 }
 \arguments{
 \item{obj}{[\code{data.frame} | \code{\link{Task}}]\cr
 Input data.}
+
+\item{target}{[\code{character(1)} | \code{character(2)} | \code{character(n.classes)}]\cr
+Name(s) of the target variable(s).
+Only used when \code{obj} is a data.frame, otherwise ignored.
+If survival analysis is applicable, these are the names of the survival time and event columns,
+so it has length 2.
+For multilabel classification these are the names of logical columns that indicate whether
+a class label is present and the number of target variables corresponds to the number of
+classes.}
 
 \item{lag}{[\code{integer}]\cr
 An integer vector of lag lengths.}
@@ -27,15 +36,6 @@ A character vector of columns to create lag features for.
 Default is to use all columns. NOTE: For forecast regression tasks, it is not
 a good idea to make lags of your target variable. So if cols are not specied by
 the user, createLagDiffFeatures will return a regr task.}
-
-\item{target}{[\code{character(1)} | \code{character(2)} | \code{character(n.classes)}]\cr
-Name(s) of the target variable(s).
-Only used when \code{obj} is a data.frame, otherwise ignored.
-If survival analysis is applicable, these are the names of the survival time and event columns,
-so it has length 2.
-For multilabel classification these are the names of logical columns that indicate whether
-a class label is present and the number of target variables corresponds to the number of
-classes.}
 
 \item{seasonal.lag}{[\code{integer}]\cr
 An integer vector of seasonal lag lengths, made as \code{seasonal.lag * frequency}}
@@ -62,12 +62,11 @@ Uses the \code{xts} framework for developing lags and is only available for \cod
 }
 \examples{
 set.seed(1234)
-dat = arima.sim(model = list(ar = c(.5,.2), ma = c(.4), order = c(2,0,1)), n = 200)
-times = (as.POSIXlt("1992-01-14")) + lubridate::days(1:200)
-dat = xts::xts(dat,order.by = times)
+dat = data.frame(arima.sim(model = list(ar = c(.5,.2), ma = c(.4), order = c(2,0,1)), n = 200))
+times = data.frame((as.POSIXlt("1992-01-14")) + lubridate::days(1:200))
 colnames(dat) = c("arma_test")
-regr.task = makeRegrTask(id = "Lagged ML model", data = as.data.frame(dat), target = "arma_test")
-regr.task.lag = createLagDiffFeatures(regr.task, lag = 1L:10L, difference = 0L)
+regr.task = makeRegrTask(id = "Lagged ML model", data = dat, target = "arma_test")
+regr.task.lag = createLagDiffFeatures(regr.task, lag = 1L:10L, difference = 0L, date.col = times)
 }
 \seealso{
 Other eda_and_preprocess: \code{\link{capLargeValues}},

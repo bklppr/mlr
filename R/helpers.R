@@ -107,3 +107,7 @@ cbindSetDiff = function(x, data, cns, nums) {
   data = data[, setdiff(cns, nums), drop = FALSE]
   cbind(data, x)
 }
+
+# Check if something is POSIXt, added so we don't need to import lubridate
+is.POSIXt = function(x) inherits(x, "POSIXt")
+

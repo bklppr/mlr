@@ -77,12 +77,7 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
     stop("Forecasting requires lags")
 
   if (!is.null(newdata)) {
-    ##FIXME: Better way to make into a data frame? This doesn't protect against a lot of things
-    if (xts::is.xts(newdata)) {
-      warningf("Provided data for prediction is not a pure data.frame but from class %s, hence it will be converted.",  class(newdata)[1])
-      newdata = as.data.frame(newdata, row.names = as.character(index(newdata)))
-      assertDataFrame(newdata, min.rows = 1L)
-    } else if (class(newdata)[1] != "data.frame") {
+    if (class(newdata)[1] != "data.frame") {
       warningf("Provided data for prediction is not a pure data.frame but from class %s, hence it will be converted.",  class(newdata)[1])
       newdata = as.data.frame(newdata)
     }
@@ -114,13 +109,11 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
   # This just cuts the amount of data we need to use
   data = td$pre.proc$data.original[,td$target, drop = FALSE]
   if (is.null(truth)) {
-    row.names = rownames(data)
-    sec = lubridate::dseconds(lubridate::int_diff(as.POSIXct(row.names)))
-    # We take the median seconds between intervals as this won't get
-    # a wrong day until about 200 months in the future.
-    med_sec = mean(sec)
-    start = as.POSIXct(row.names[length(row.names)])
-    row.names = start + rep(med_sec,h) * 1:h
+    row.dates = as.POSIXct(proc.vals$date.col)
+    diff.time = difftime(row.dates[2], row.dates[1], units = "auto")
+    start = row.dates[length(row.dates)] + diff.time
+    end = start + diff.time * h
+    row.names = seq.POSIXt(start, end - 1, by = diff.time)
   } else {
     row.names = row.names(truth)
   }
@@ -163,21 +156,24 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
 
 makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
   forecasts = list()[1:I(.h)]
-  for (i in 1:(.h)) {
+  data = .data
+  for (i in seq_len(.h)) {
 
     .data = rbind(.data,NA)
     # The dates here will be thrown away later
     times = as.POSIXct("1992-01-14") + lubridate::days(1:I(nrow(.data)))
-    dat.xts = xts::xts(.data, order.by = times)
-    colnames(dat.xts) = .td$target
-
+    if (i == 1) {
+      print(.data)
+      print(forecasts)
+    }
+    .proc.vals$date.col = times
     # get lag structure
     lagdiff.func = function(...) {
-      createLagDiffFeatures(obj = dat.xts,...)
+      createLagDiffFeatures(obj = .data,...)
     }
     data.lag = do.call(lagdiff.func, .proc.vals)
     data.lag = as.data.frame(data.lag)
-    data.step = data.lag[nrow(data.lag),,drop = FALSE]
+    data.step = data.lag[nrow(data.lag), , drop = FALSE]
     if (!is.null(.newdata))
       data.step = cbind(data.step,.newdata[i,])
 
@@ -186,7 +182,7 @@ makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
 
     if (pred$predict.type == "response") {
       forecasts[[i]] = pred$data
-      .data[nrow(.data),] = pred$data$response
+      .data[nrow(.data),] = getPredictionResponse(pred)
     } else if (pred$predict.type == "prob") {
       #FIXME: I don't know regex well enough to do this in one sweep
       colnames(pred$data) = stringr::str_replace(colnames(pred$data),"prob","")

@@ -40,43 +40,57 @@ instantiateResampleInstance.RepCVDesc = function(desc, size, task = NULL) {
 }
 
 instantiateResampleInstance.FixedCVDesc = function(desc, size, task = NULL) {
-  initial.window = floor(desc$initial.window * size)
+  initial.window.abs = floor(desc$initial.window * size)
+  assertInt(initial.window.abs, lower = 1)
+  if (size - initial.window.abs < desc$horizon)
+    stop(catf("The initial window is %i observations while the data is %i observations. \n
+      There is not enough data left (%i observations) to create a test set for a %i size horizon",
+      initial.window.abs, size, initial.window.abs - size, desc$horizon))
   skip = floor(desc$skip * size)
-  stops  = (seq(size))[initial.window:(size - desc$horizon)]
-  starts = stops - initial.window + 1
+  stops  = (seq(size))[initial.window.abs:(size - desc$horizon)]
+  starts = stops - initial.window.abs + 1
   train.inds = mapply(seq, starts, stops, SIMPLIFY = FALSE)
   test.inds  = mapply(seq, stops + 1, stops + desc$horizon, SIMPLIFY = FALSE)
 
-  thin = function(x, skip = 2) {
+  thin = function(x, skip = 0) {
     n = length(x)
     x[seq(1, n, by = skip)]
   }
 
-  if(skip > 0) {
-    train.inds = thin(train.inds, skip = skip+1)
-    test.inds = thin(test.inds, skip = skip+1)
+  if (skip > 0) {
+    train.inds = thin(train.inds, skip = skip + 1)
+    test.inds = thin(test.inds, skip = skip + 1)
   }
+  if (length(test.inds) == 0)
+    stop("Skip is too large and has removed all resampling instances. Please lower the value of skip.")
   desc$iters = length(test.inds)
-
   makeResampleInstanceInternal(desc, size, train.inds = train.inds, test.inds = test.inds )
 }
 
 instantiateResampleInstance.GrowingCVDesc = function(desc, size, task = NULL) {
-  initial.window = floor(desc$initial.window * size)
+  initial.window.abs = floor(desc$initial.window * size)
+  assertInt(initial.window.abs, lower = 1)
+  if (size - initial.window.abs < desc$horizon)
+    stop(catf("The initial window is %i observations while the data is %i observations. \n
+      There is not enough data left (%i observations) to create a test set for a %i size horizon",
+      initial.window.abs, size, initial.window.abs - size, desc$horizon))
   skip = floor(desc$skip * size)
-  stops  = (seq(from = 1, to = size))[initial.window:(size - desc$horizon)]
+  stops  = (seq(from = 1, to = size))[initial.window.abs:(size - desc$horizon)]
   starts = rep(1, length(stops))
   train.inds = mapply(seq, starts, stops, SIMPLIFY = FALSE)
   test.inds  = mapply(seq, stops + 1, stops + desc$horizon, SIMPLIFY = FALSE)
-  thin = function(x, skip = 2) {
+
+  thin = function(x, skip = 0) {
     n = length(x)
     x[seq(1, n, by = skip)]
   }
 
-  if(skip > 0) {
-    train.inds = thin(train.inds, skip = skip+1)
-    test.inds  = thin(test.inds, skip = skip+1)
+  if (skip > 0) {
+    train.inds = thin(train.inds, skip = skip + 1)
+    test.inds  = thin(test.inds, skip = skip + 1)
   }
+  if (length(test.inds) == 0)
+    stop("Skip is too large and has removed all resampling instances. Please lower the value of skip.")
   desc$iters = length(test.inds)
   makeResampleInstanceInternal(desc, size, train.inds = train.inds, test.inds = test.inds )
 }

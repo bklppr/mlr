@@ -457,8 +457,8 @@ changeData = function(task, data, costs, weights) {
     "surv" = makeSurvTaskDesc(td$id, data, td$target, task$weights, task$blocking, td$censoring),
     "costsens" = makeCostSensTaskDesc(td$id, data, td$target, task$blocking, costs),
     "multilabel" = makeMultilabelTaskDesc(td$id, data, td$target, td$weights, task$blocking),
-    "fcregr" = makeForecastRegrTaskDesc(td$id, data, td$target, td$weights, td$blocking, td$frequency),
-    "mfcregr" = makeMultiForecastRegrTaskDesc(td$id, data, td$target, td$weights, td$blocking, td$frequency)
+    "fcregr" = makeForecastRegrTaskDesc(td$id, data, td$target, td$weights, td$blocking, td$frequency, dates = td$dates),
+    "mfcregr" = makeMultiForecastRegrTaskDesc(td$id, data, td$target, td$weights, td$blocking, td$frequency, dates = td$dates)
   )
 
   return(task)
@@ -474,4 +474,15 @@ getTaskFactorLevels = function(task) {
 
 getTaskWeights = function(task) {
   task$weights
+}
+
+#' @title Get the dates of the task.
+#'
+#' @description Returns the dates from a task if they exist.
+#' @template arg_task_or_desc
+#' @return [\code{character(1)}]
+#' @export
+#' @family task
+getTaskDates = function(x) {
+  getTaskDesc(x)$dates
 }
