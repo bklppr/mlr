@@ -11,7 +11,7 @@ test_that("fcregr_auto.arima", {
   )
   old.predicts.list = list()
 
-  for (i in 1:length(parset.list)) {
+  for (i in seq_len(length(parset.list))) {
     parset = parset.list[[i]]
     pars = list(y = ts(fcregr.train$test_data, start = 1, frequency = 1L))
     pars = c(pars, parset)
@@ -34,7 +34,7 @@ test_that("fcregr_auto.arima", {
 })
 
 
-test_that("fcregr_auto.arima_update",{
+test_that("fcregr_auto.arima_update", {
   parset.list = list(
     list(),
     list(max.p = 8),
@@ -44,7 +44,7 @@ test_that("fcregr_auto.arima_update",{
   )
   old.predicts.list = list()
 
-  for (i in 1:length(parset.list)) {
+  for (i in seq_len(length(parset.list))) {
     parset = parset.list[[i]]
     pars = list(y = as.ts(fcregr.update.train$test_data))
     pars = c(pars, parset)

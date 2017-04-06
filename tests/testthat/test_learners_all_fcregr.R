@@ -5,8 +5,8 @@ test_that("learners work: fcregr ", {
   # settings to make learners faster and deal with small data size
   hyperpars = list(
     fcregr.arfima        = list(drange = c(0, .5), h = 101L),
-    fcregr.Arima         = list(order = c(2,0,1), h = 101L),
-    fcregr.auto.arima    = list( h = 101L),
+    fcregr.Arima         = list(order = c(2, 0, 1), h = 101L),
+    fcregr.auto.arima    = list(h = 101L),
     fcregr.bats          = list(use.box.cox = TRUE, h = 101L),
     fcregr.ets           = list(model = "ANN", h = 101L),
     fcregr.garch         = list(n.ahead = 101L),

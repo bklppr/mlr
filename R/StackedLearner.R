@@ -770,8 +770,8 @@ stackGrowingCV = function(learner, task) {
     # add data with normal features IN CORRECT ORDER
     feat = getTaskData(task)#[test.inds, ]
     feat = feat[, !colnames(feat) %in% tn, drop = FALSE]
-    predData = cbind(probs, feat)
-    super.task = makeSuperLearnerTask(learner, data = predData, target = tn)
+    pred.data = cbind(probs, feat)
+    super.task = makeSuperLearnerTask(learner, data = pred.data, target = tn)
   } else {
     super.task = makeSuperLearnerTask(learner, data = probs, target = tn)
   }
@@ -781,7 +781,6 @@ stackGrowingCV = function(learner, task) {
 }
 
 
-# TODOs:
 # - document + test + export
 # - benchmark stuff on openml
 # - allow base.learners to be character of learners (not only list of learners)

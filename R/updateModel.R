@@ -57,7 +57,7 @@ updateModel = function(object, task, newdata, subset, weights = NULL, ...) {
     else
       subset = asInteger(subset, min.len = 1L, any.missing = FALSE, lower = 1L, upper = size)
   }
-  newdata = newdata[subset,setdiff(colnames(newdata), colnames(td$dates)), drop = FALSE]
+  newdata = newdata[subset, setdiff(colnames(newdata), colnames(td$dates)), drop = FALSE]
 
 
   # if we saved a model and loaded it later just for prediction this is necessary

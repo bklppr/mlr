@@ -47,8 +47,8 @@ makeRLearner.fcregr.garch = function() {
                                                     "nloptr", "hybrid"), default = "solnp"),
       makeUntypedLearnerParam("solver.control", default = list()),
       makeUntypedLearnerParam("numderiv.control", default = list(grad.eps = 1e-4, grad.d = 0.0001,
-                                                                 grad.zero.tol = sqrt(.Machine$double.eps/7e-7), hess.eps = 1e-4, hess.d = 0.1,
-                                                                 hess.zero.tol = sqrt(.Machine$double.eps/7e-7), r = 4, v = 2)),
+                                                                 grad.zero.tol = sqrt(.Machine$double.eps / 7e-7), hess.eps = 1e-4, hess.d = 0.1,
+                                                                 hess.zero.tol = sqrt(.Machine$double.eps / 7e-7), r = 4, v = 2)),
       # BEGIN: fit.control
       makeDiscreteLearnerParam("stationarity", values = c(0L, 1L), default = 1L),
       makeDiscreteLearnerParam("fixed.se", values = c(0L, 1L), default = 0L),

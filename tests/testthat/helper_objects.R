@@ -127,14 +127,14 @@ fcregr.update.update.inds = 101:110
 fcregr.update.test.inds  = 111
 
 fcregr.update.train = fcregr.update.df[fcregr.update.train.inds, ]
-fcregr.update.update = fcregr.update.df[fcregr.update.update.inds,]
+fcregr.update.update = fcregr.update.df[fcregr.update.update.inds, ]
 fcregr.update.test  = fcregr.update.df[fcregr.update.test.inds, ]
 fcregr.update.task = makeForecastRegrTask("fcregrtask", data = fcregr.update.train, target = fcregr.update.target)
 
-fcregr.small.df = fcregr.df[1:10,]
+fcregr.small.df = fcregr.df[1:10, ]
 fcregr.small.target = "test_data"
 fcregr.small.train.inds = 1:9
-fcregr.small.test.inds  = setdiff(1:nrow(fcregr.small.df), fcregr.small.train.inds)
+fcregr.small.test.inds  = setdiff(seq_len(nrow(fcregr.small.df)), fcregr.small.train.inds)
 fcregr.small.train = fcregr.small.df[fcregr.small.train.inds, ]
 fcregr.small.test  = fcregr.small.df[fcregr.small.test.inds, ]
 fcregr.small.task = makeForecastRegrTask("fcregrtask", data = fcregr.small.df, target = fcregr.small.target)
@@ -143,10 +143,10 @@ fcregr.small.task = makeForecastRegrTask("fcregrtask", data = fcregr.small.df, t
 
 ## mfcregr test data
 data("EuStockMarkets")
-mfcregr.times = as.POSIXct(as.Date(paste(start(EuStockMarkets)[1],130), "%Y %j"))
-mfcregr.times = seq(from = mfcregr.times, by = "day", length.out = dim(EuStockMarkets)[1])
+mfcregr.times = as.POSIXct(as.Date(paste(start(EuStockMarkets)[1], 130), "%Y %j"))
+mfcregr.times = seq(from = mfcregr.times, by = "day", length.out = nrow(EuStockMarkets))
 mfcregr.df  = data.frame(EuStockMarkets, dates = mfcregr.times )
-mfcregr.df = mfcregr.df[1:300,]
+mfcregr.df = mfcregr.df[1:300, ]
 mfcregr.target = "all"
 mfcregr.train.inds = seq(1, 299, 1)
 mfcregr.test.inds  = 300
@@ -158,22 +158,22 @@ mfcregr.task = makeMultiForecastRegrTask("mfcregrtask", data = mfcregr.df, targe
 #########
 # Objects for Forecasting with regular tasks
 #########
-binaryclass.df.lag = binaryclass.df[,binaryclass.target,drop = FALSE]
-binaryclass.df.lag.dates =  as.POSIXct("1992-01-14") + 1:nrow(binaryclass.df.lag)
-binaryclass.train.inds.lag = c(1:150)
-binaryclass.test.inds.lag  = setdiff(1:nrow(binaryclass.df), binaryclass.train.inds)
-binaryclass.train.lag = binaryclass.df.lag[binaryclass.train.inds.lag, ,drop = FALSE]
-binaryclass.test.lag  = binaryclass.df.lag[binaryclass.test.inds.lag, ,drop = FALSE]
+binaryclass.df.lag = binaryclass.df[, binaryclass.target, drop = FALSE]
+binaryclass.df.lag.dates =  as.POSIXct("1992-01-14") + seq_len(nrow(binaryclass.df.lag))
+binaryclass.train.inds.lag = seq_len(150)
+binaryclass.test.inds.lag  = setdiff(seq_len(nrow(binaryclass.df)), binaryclass.train.inds)
+binaryclass.train.lag = binaryclass.df.lag[binaryclass.train.inds.lag, , drop = FALSE]
+binaryclass.test.lag  = binaryclass.df.lag[binaryclass.test.inds.lag, , drop = FALSE]
 binaryclass.class.col.lag = 1
 binaryclass.class.levs.lag = levels(binaryclass.df.lag[, binaryclass.class.col.lag])
 binaryclass.task.lag = makeClassifTask("binary.lag", data = binaryclass.df.lag, target = binaryclass.target)
-binaryclass.task.lag = createLagDiffFeatures(binaryclass.task.lag,lag = 1L:5L, na.pad = FALSE, date.col = binaryclass.df.lag.dates)
+binaryclass.task.lag = createLagDiffFeatures(binaryclass.task.lag, lag = 1L:5L, na.pad = FALSE, date.col = binaryclass.df.lag.dates)
 binaryclass.h = length(binaryclass.test.inds.lag)
 
-multiclass.df.lag = multiclass.df[,multiclass.target,drop = FALSE]
-multiclass.df.lag.dates = as.POSIXct("1992-01-14") + 1:nrow(multiclass.df.lag)
-multiclass.train.inds.lag = c(1:130)
-multiclass.test.inds.lag  = setdiff(1:150, multiclass.train.inds.lag)
+multiclass.df.lag = multiclass.df[, multiclass.target, drop = FALSE]
+multiclass.df.lag.dates = as.POSIXct("1992-01-14") + seq_len(nrow(multiclass.df.lag))
+multiclass.train.inds.lag = seq_len(130)
+multiclass.test.inds.lag  = setdiff(seq_len(150), multiclass.train.inds.lag)
 multiclass.train.lag = multiclass.df.lag[multiclass.train.inds.lag, ]
 multiclass.test.lag  = multiclass.df.lag[multiclass.test.inds.lag, ]
 multiclass.class.col.lag = 1
@@ -181,10 +181,10 @@ multiclass.task.lag = makeClassifTask("multiclass.lag", data = multiclass.df.lag
 multiclass.task.lag = createLagDiffFeatures(multiclass.task.lag, lag = 1L:5L, na.pad = FALSE, date.col = multiclass.df.lag.dates)
 multiclass.h = length(multiclass.test.inds.lag)
 
-multilabel.df.lag = multilabel.df[,multilabel.target,drop = FALSE]
-multilabel.df.lag.dates = as.POSIXct("1992-01-14") + 1:nrow(multilabel.df.lag)
-multilabel.train.inds.lag = c(1:130)
-multilabel.test.inds.lag  = setdiff(1:150, multilabel.train.inds.lag)
+multilabel.df.lag = multilabel.df[, multilabel.target, drop = FALSE]
+multilabel.df.lag.dates = as.POSIXct("1992-01-14") + seq_len(nrow(multilabel.df.lag))
+multilabel.train.inds.lag = seq_len(130)
+multilabel.test.inds.lag  = setdiff(seq_len(150), multilabel.train.inds.lag)
 multilabel.train.lag = multilabel.df.lag[multilabel.train.inds.lag, ]
 multilabel.test.lag  = multilabel.df.lag[multilabel.test.inds.lag, ]
 multilabel.task.lag = makeMultilabelTask("multilabel.lag", data = multilabel.df.lag, target = multilabel.target)
@@ -192,11 +192,11 @@ multilabel.task.lag = makeMultilabelTask("multilabel.lag", data = multilabel.df.
 multilabel.task.lag = createLagDiffFeatures(multilabel.task.lag, lag = 1L:5L, na.pad = FALSE, date.col = multilabel.df.lag.dates)
 multilabel.h = 20
 
-regr.df.lag = regr.df[,regr.target,drop = FALSE]
-regr.df.lag.dates = as.POSIXct("1992-01-14") + 1:nrow(regr.df.lag)
-regr.train.inds.lag = 1:496
-regr.test.inds.lag  = setdiff(1:nrow(regr.df.lag), regr.train.inds.lag)
-regr.train.lag = regr.df.lag[regr.train.inds.lag, ,drop = FALSE]
+regr.df.lag = regr.df[, regr.target, drop = FALSE]
+regr.df.lag.dates = as.POSIXct("1992-01-14") + seq_len(nrow(regr.df.lag))
+regr.train.inds.lag = seq_len(496)
+regr.test.inds.lag  = setdiff(seq_len(nrow(regr.df.lag)), regr.train.inds.lag)
+regr.train.lag = regr.df.lag[regr.train.inds.lag, , drop = FALSE]
 regr.test.lag  = regr.df.lag[regr.test.inds.lag, , drop = FALSE]
 regr.class.col.lag = 1
 regr.task.lag = makeRegrTask("regrtask", data = regr.df.lag, target = regr.target)
@@ -207,8 +207,8 @@ surv.formula = survival::Surv(time, status) ~ .
 surv.target = c("time", "status")
 
 ## I have no idea if forecasting will work for survival tasks
-surv.df.lag = surv.df[,surv.target,drop = FALSE]
-surv.df.lag.dates = as.POSIXct("1992-01-14") + 1:nrow(surv.df.lag)
+surv.df.lag = surv.df[, surv.target, drop = FALSE]
+surv.df.lag.dates = as.POSIXct("1992-01-14") + seq_len(nrow(surv.df.lag))
 surv.train.lag = surv.df.lag[surv.train.inds, ]
 surv.test.lag  = surv.df.lag[surv.test.inds, ]
 surv.task.lag = makeSurvTask("survtask", data = surv.df.lag, target = surv.target)

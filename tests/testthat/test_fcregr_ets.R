@@ -4,15 +4,15 @@ test_that("fcregr_ets", {
 
   parset.list = list(
     list(),
-    list( model = "ANN"),
-    list( model = "ZAZ", ic = "bic"),
+    list(model = "ANN"),
+    list(model = "ZAZ", ic = "bic"),
     list(opt.crit = "amse", bounds = "usual"),
-    list( model = "AZZ", lambda = 1)
+    list(model = "AZZ", lambda = 1)
   )
   old.predicts.list = list()
   #FIXME: Have to load the namespace?
   requireNamespace("forecast")
-  for (i in 1:length(parset.list)) {
+  for (i in seq_len(length(parset.list))) {
     parset = parset.list[[i]]
     pars = list(y = ts(fcregr.train$test_data, start = 1, frequency = 1L))
     pars = c(pars, parset)
@@ -34,18 +34,16 @@ test_that("fcregr_ets", {
                     fcregr.train.inds, old.predicts.list, parset.list)
 })
 
-test_that("fcregr_ets_update",{
+test_that("fcregr_ets_update", {
   parset.list = list(
     list(),
-    list( model = "ANN"),
-    list( model = "ZAZ", ic = "bic"),
+    list(model = "ANN"),
+    list(model = "ZAZ", ic = "bic"),
     list(opt.crit = "amse", bounds = "usual"),
-    list( model = "AZZ", lambda = 1)
+    list(model = "AZZ", lambda = 1)
   )
   old.predicts.list = list()
-  #FIXME: Have to load the namespace?
-  library("forecast")
-  for (i in 1:length(parset.list)) {
+  for (i in seq_len(length(parset.list))) {
     parset = parset.list[[i]]
     pars = list(y = as.ts(fcregr.update.train$test_data))
     pars = c(pars, parset)
@@ -55,7 +53,7 @@ test_that("fcregr_ets_update",{
     })
     parset$model = m
     pars.update = list(y = as.ts(fcregr.update.update$test_data))
-    pars.update = c(pars.update,parset)
+    pars.update = c(pars.update, parset)
     set.seed(getOption("mlr.debug.seed"))
     capture.output({
       m = do.call(forecast::ets, pars.update)

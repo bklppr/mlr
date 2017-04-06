@@ -8,7 +8,7 @@ test_that("createLagDiffFeatures", {
     difference = 2L,
     na.pad = TRUE,
     date.col = fcregr.df[, 2, drop = FALSE])
-  expect_equal(nrow(fcregr.df),nrow(fcregr.df.lag))
+  expect_equal(nrow(fcregr.df), nrow(fcregr.df.lag))
   fcregr.df.lag.na = createLagDiffFeatures(fcregr.df[, 1, drop = FALSE],
     lag = 1:2L,
     difference.lag = 1L,

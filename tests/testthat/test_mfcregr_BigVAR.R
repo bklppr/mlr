@@ -20,9 +20,9 @@ test_that("mfcregr_BigVAR", {
   )
   old.predicts.list = list()
 
-  for (i in 1:length(parset.list)) {
+  for (i in seq_len(length(parset.list))) {
     parset = parset.list[[i]]
-    pars = list(Y = as.matrix(mfcregr.train[,-5]))
+    pars = list(Y = as.matrix(mfcregr.train[, -5]))
     pars = c(pars, parset)
     set.seed(getOption("mlr.debug.seed"))
     capture.output({
@@ -39,7 +39,7 @@ test_that("mfcregr_BigVAR", {
     old.predicts.list[[i]] = p
   }
 
-  for (i in 1:length(parset.list)){
+  for (i in seq_len(length(parset.list))) {
     parset.list[[i]]$n.ahead = 1L
     parset.list[[i]] = list(par.vals = parset.list[[i]])
     parset.list[[i]]$predict.type = "response"

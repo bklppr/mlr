@@ -2,7 +2,7 @@ context("forecast")
 
 test_that("forecast regression task", {
   fc = fcregr.task
-  expect_equal(getTaskTargetNames(fc), c("test_data"))
+  expect_equal(getTaskTargetNames(fc), "test_data")
   y = getTaskTargets(fc)
   expect_true(is.numeric(y) && is.null(ncol(y)) )
   expect_true(is.null(colnames(y)))
@@ -21,7 +21,7 @@ test_that("forecast tasks and learner", {
   p = performance(pred)
   expect_true(!is.na(p))
   # resample
-  r = holdout(lrn, fcregr.task,split = .99)
+  r = holdout(lrn, fcregr.task, split = .99)
   expect_true(!is.na(r$aggr))
   # Learning with Lambert W
   lrn = makePreprocWrapperLambert(lrn, type = "h", verbose = FALSE)
@@ -29,7 +29,7 @@ test_that("forecast tasks and learner", {
   fcregr.task2 = makeForecastRegrTask("fcregr", data = fcregr.df2, target = fcregr.target, check.data = FALSE)
   expect_error(mod = train(lrn, fcregr.task2))
   # Learner with Hyperparameters
-  lrn = makeLearner("fcregr.Arima", par.vals = list(order = c(2,0,1), include.mean = FALSE))
+  lrn = makeLearner("fcregr.Arima", par.vals = list(order = c(2, 0, 1), include.mean = FALSE))
   mod = train(lrn, fcregr.task)
   pred = predict(mod, newdata = fcregr.test)
   p = performance(pred)
@@ -43,14 +43,14 @@ test_that("forecast with regular tasks", {
 
   # multiclass response works
   cm2 = train(makeLearner("classif.lda"), multiclass.task.lag, subset = inds)
-  cp2  = forecast(cm2, h = multiclass.h, newdata = data[-inds, ,drop = FALSE])
-  cp2b = forecast(cm2, h = multiclass.h, newdata = data[-inds,-1 ,drop = FALSE])
+  cp2  = forecast(cm2, h = multiclass.h, newdata = data[-inds, , drop = FALSE])
+  cp2b = forecast(cm2, h = multiclass.h, newdata = data[-inds, -1, drop = FALSE])
   cp2c = forecast(cm2, h = multiclass.h)
   # multiclass probs
   wl.lda = makeLearner("classif.lda", predict.type = "prob")
   cm3 = train(wl.lda, multiclass.task.lag, subset = inds)
-  cp3 = forecast(cm3,h = multiclass.h, newdata = data[multiclass.test.inds.lag,,drop = FALSE])
-  testPred = getPredictionProbabilities(cp3)
+  cp3 = forecast(cm3, h = multiclass.h, newdata = data[multiclass.test.inds.lag, , drop = FALSE])
+  test.pred = getPredictionProbabilities(cp3)
   expect_true(is.numeric(getPredictionProbabilities(cp3, "setosa")))
   expect_equal(colnames(getPredictionProbabilities(cp3, c("setosa", "versicolor"))), c("setosa", "versicolor"))
   expect_equal(colnames(getPredictionProbabilities(cp3, c("versicolor", "setosa"))), c("versicolor", "setosa"))
@@ -73,7 +73,7 @@ test_that("forecast with regular tasks", {
 test_that("forecast works with type = se", {
   lrn = makeLearner("regr.lm", predict.type = "se")
   mod = train(lrn, regr.task.lag)
-  p = forecast(mod,h = regr.h,newdata = regr.test.lag)
+  p = forecast(mod, h = regr.h, newdata = regr.test.lag)
   expect_equal(colnames(p$data), c("truth", "response", "se"))
 })
 
@@ -95,12 +95,12 @@ test_that("forecast correctly propagates exception in predictLearner", {
 test_that("setThreshold does not produce NAs for extreme thresholds", {
   # we had bug / issue 168 here
   data(GermanCredit, package = "caret")
-  GermanCredit.dates = as.POSIXct("1992-01-14") + 1:nrow(GermanCredit)
-  credit.task.lag = makeClassifTask(data = GermanCredit[,"Class",drop = FALSE], target = "Class")
-  credit.task.lag = createLagDiffFeatures(credit.task.lag, lag = 1:5L, date.col = GermanCredit.dates)
+  german.credit.dates = as.POSIXct("1992-01-14") + seq_len(nrow(GermanCredit))
+  credit.task.lag = makeClassifTask(data = GermanCredit[, "Class", drop = FALSE], target = "Class")
+  credit.task.lag = createLagDiffFeatures(credit.task.lag, lag = 1:5L, date.col = german.credit.dates)
   lrn = makeLearner("classif.rpart", predict.type = "prob")
   mod = train(lrn, credit.task.lag)
-  p1 = forecast(mod,h = 10L)
+  p1 = forecast(mod, h = 10L)
   p2 = setThreshold(p1, 0)
   expect_true(!any(is.na(p2$data$response)))
 })
@@ -109,7 +109,7 @@ test_that("setThreshold does not produce NAs for extreme thresholds", {
 test_that("predict works with data.table as newdata", {
   lrn = makeLearner("classif.lda")
   mod = train(lrn, multiclass.task.lag)
-  expect_warning(forecast(mod, newdata = data.table(iris[1:5,]), h = 5), regexp = "Provided data for prediction is not a pure data.frame but from class data.table, hence it will be converted.")
+  expect_warning(forecast(mod, newdata = data.table(iris[1:5, ]), h = 5), regexp = "Provided data for prediction is not a pure data.frame but from class data.table, hence it will be converted.")
 })
 
 

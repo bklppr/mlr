@@ -73,7 +73,7 @@ makeRLearner.fcregr.bats = function() {
 #'@export
 trainLearner.fcregr.bats = function(.learner, .task, .subset, .weights = NULL, ...) {
 
-  data = getTaskData(.task, .subset,target.extra = TRUE)
+  data = getTaskData(.task, .subset, target.extra = TRUE)
   data$target = ts(data$target, start = 1, frequency = .task$task.desc$frequency)
   forecast::bats(y = data$target, ...)
 }
@@ -82,7 +82,7 @@ trainLearner.fcregr.bats = function(.learner, .task, .subset, .weights = NULL, .
 updateLearner.fcregr.bats = function(.learner, .model, .newdata, .task, .truth, .weights = NULL, ...) {
   target = getTaskTargetNames(.task)
   data = ts(.truth, start = 1, frequency = .task$task.desc$frequency)
-  forecast::bats(y = data, model = .model$learner.model,...)
+  forecast::bats(y = data, model = .model$learner.model, ...)
 }
 
 #'@export

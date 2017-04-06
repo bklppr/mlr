@@ -37,19 +37,18 @@ test_that("fcregr_Arima", {
 })
 
 
-test_that("fcregr_Arima_update",{
+test_that("fcregr_Arima_update", {
   parset.list = list(
     list(),
-    list(order = c(2,0,1)),
-    list(order = c(2,0,1), include.mean = TRUE),
-    # FIXME: Why does this fail for include.drift = TRUE???
-    list(order = c(2,0,2), include.mean = TRUE, method = c("ML")),
-    list(order = c(2,0,1), method = c("ML"))
+    list(order = c(2, 0, 1)),
+    list(order = c(2, 0, 1), include.mean = TRUE),
+    list(order = c(2, 0, 2), include.mean = TRUE, method = "ML"),
+    list(order = c(2, 0, 1), method = "ML")
 
   )
   old.predicts.list = list()
 
-  for (i in 1:length(parset.list)) {
+  for (i in seq_len(length(parset.list))) {
     parset = parset.list[[i]]
     pars = list(y = as.ts(fcregr.update.train$test_data))
     pars = c(pars, parset)
@@ -59,7 +58,7 @@ test_that("fcregr_Arima_update",{
     })
     parset$model = m
     pars.update = list(y = as.ts(fcregr.update.update$test_data))
-    pars.update = c(pars.update,parset)
+    pars.update = c(pars.update, parset)
     set.seed(getOption("mlr.debug.seed"))
     capture.output({
       m = do.call(forecast::Arima, pars.update)

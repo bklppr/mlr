@@ -11,7 +11,7 @@ test_that("fcregr_arfima", {
   )
   old.predicts.list = list()
 
-  for (i in 1:length(parset.list)) {
+  for (i in seq_len(length(parset.list))) {
     parset = parset.list[[i]]
     # NOTE: This function only accepts positive values
     pars = list(y = ts(abs(fcregr.train$test_data), start = 1, frequency = 1L))

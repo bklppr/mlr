@@ -1516,14 +1516,14 @@ multivar.mase = makeMeasure(
   best = 0,
   worst = Inf,
   fun = function(task, model, pred, feats, extra.args) {
-    truth  = getPredictionTruth(pred)
+    truth = getPredictionTruth(pred)
     pred.names = getTaskTargetNames(task)
-    pred   = getPredictionResponse(pred)
-    pred   = pred[,pred.names,drop = FALSE]
+    pred = getPredictionResponse(pred)
+    pred = pred[, pred.names, drop = FALSE]
     target = as.matrix(getTaskTargets(task))
-    top_error   = abs(truth - pred)
-    bottom_diff = colMeans(abs(diff(target)))
-    mean(colMeans(top_error / bottom_diff))
+    top.error = abs(truth - pred)
+    bottom.diff = colMeans(abs(diff(target)))
+    mean(colMeans(top.error / bottom.diff))
     }
 
 )

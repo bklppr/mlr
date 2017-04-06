@@ -157,9 +157,9 @@ makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
   data = .data
   for (i in seq_len(.h)) {
 
-    .data = rbind(.data,NA)
+    .data = rbind(.data, NA)
     # The dates here will be thrown away later
-    times =  as.POSIXct("1992-01-14") + 1:(nrow(.data))
+    times =  as.POSIXct("1992-01-14") + seq_len(nrow(.data))
     if (i == 1) {
       print(.data)
       print(forecasts)
@@ -167,34 +167,33 @@ makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
     .proc.vals$date.col = times
     # get lag structure
     lagdiff.func = function(...) {
-      createLagDiffFeatures(obj = .data,...)
+      createLagDiffFeatures(obj = .data, ...)
     }
     data.lag = do.call(lagdiff.func, .proc.vals)
     data.lag = as.data.frame(data.lag)
     data.step = data.lag[nrow(data.lag), , drop = FALSE]
     if (!is.null(.newdata))
-      data.step = cbind(data.step,.newdata[i,])
+      data.step = cbind(data.step, .newdata[i, ])
 
     # predict
     pred = predict(.model, newdata = data.step)
 
     if (pred$predict.type == "response") {
       forecasts[[i]] = pred$data
-      .data[nrow(.data),] = getPredictionResponse(pred)
+      .data[nrow(.data), ] = getPredictionResponse(pred)
     } else if (pred$predict.type == "prob") {
-      #FIXME: I don't know regex well enough to do this in one sweep
-      colnames(pred$data) = stri_replace_all_regex(colnames(pred$data),"prob","")
-      colnames(pred$data) = stri_replace_all_regex(colnames(pred$data),"[.]","")
-      .data[nrow(.data),] = pred$data$response
+      colnames(pred$data) = stri_replace_all_regex(colnames(pred$data), "prob", "")
+      colnames(pred$data) = stri_replace_all_regex(colnames(pred$data), "[.]", "")
+      .data[nrow(.data), ] = getPredictionResponse(pred)
       pred$data$response = NULL
       forecasts[[i]] = pred$data
     } else if (pred$predict.type == "se") {
       forecasts[[i]] = pred$data
-      .data[nrow(.data),] = pred$data$response
+      .data[nrow(.data), ] = getPredictionResponse(pred)
     }
   }
 
-  p = do.call(rbind,forecasts)
+  p = do.call(rbind, forecasts)
   p$truth = NULL
   p
 }
