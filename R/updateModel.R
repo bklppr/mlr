@@ -122,6 +122,9 @@ updateModel = function(object, task, newdata, subset, weights = NULL, ...) {
       set.seed(debug.seed)
     fun1 = if (opts$show.learner.output) identity else capture.output
     fun2 = if (opts$on.learner.error == "stop") identity else function(x) try(x, silent = TRUE)
+    fun3 = if (opts$on.learner.error == "stop" || !opts$on.error.dump) identity else function(x) {
+      withCallingHandlers(x, error = function(c) utils::dump.frames())
+    }
     if (opts$on.learner.warning == "quiet") {
       old.warn.opt = getOption("warn")
       on.exit(options(warn = old.warn.opt))
@@ -129,11 +132,11 @@ updateModel = function(object, task, newdata, subset, weights = NULL, ...) {
     }
     # FIXME: If there is an = sign assigning learner.model there will be no assignment
     ## The only way this function works is if there is s <-
-    st = system.time(fun1(learner.model <- fun2(do.call(updateLearner2, pars))), gcFirst = FALSE)
+    time.train = measureTime(fun1({learner.model = fun2(fun3(do.call(updateLearner2, pars)))}))
     # was there an error during training? maybe warn then
     if (is.error(learner.model) && opts$on.learner.error == "warn")
       warningf("Could not train learner %s: %s", learner$id, as.character(learner.model))
-    time.train = as.numeric(st[3L])
+
   }
   factor.levels = getTaskFactorLevels(task)
   makeWrappedModel(learner, learner.model, getTaskDesc(task), subset, vars, factor.levels, time.train)

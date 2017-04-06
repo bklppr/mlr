@@ -137,12 +137,15 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
     opts = getLearnerOptions(learner, c("show.learner.output", "on.learner.error", "on.learner.warning"))
     fun1 = if (opts$show.learner.output) identity else capture.output
     fun2 = if (opts$on.learner.error == "stop") identity else function(x) try(x, silent = TRUE)
+    fun3 = if (opts$on.learner.error == "stop" || !opts$on.error.dump) identity else function(x) {
+      withCallingHandlers(x, error = function(c) utils::dump.frames())
+    }
     if (opts$on.learner.warning == "quiet") {
       old.warn.opt = getOption("warn")
       on.exit(options(warn = old.warn.opt))
       options(warn = -1L)
     }
-    time.predict = measureTime(fun1(p <- fun2(do.call(makeForecast, pars))))
+    time.predict = measureTime(fun1({p = fun2(fun3(do.call(makeForecast, pars)))}))
   }
 
   ids = NULL

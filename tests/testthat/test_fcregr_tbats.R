@@ -43,7 +43,7 @@ test_that("fcregr_tbats_update", {
   )
   old.predicts.list = list()
 
-  for (i in 1:length(parset.list)) {
+  for (i in seq_len(length(parset.list))) {
     parset = parset.list[[i]]
     pars = list(y = as.ts(fcregr.update.train$test_data))
     pars = c(pars, parset)
