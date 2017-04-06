@@ -184,22 +184,23 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
     max(difference) * max(difference.lag),
     max(seasonal.difference * frequency) * max(seasonal.difference.lag * frequency)))
 
-  original.data = as.data.frame(data[, .SD[max.shift - .N + 1, ], by = eval(c(grouping))])
+
   if (return.nonlag) {
-    data = data[, c(setdiff(work.cols, cols)), drop = FALSE, with = FALSE]
+    data = data[, c(setdiff(work.cols, cols), "dates"), drop = FALSE, with = FALSE]
     if (ncol(data) != 0) {
       data = cbind(data, x)
     } else {
       data = x
     }
   } else {
-    data = cbind(data[, c(setdiff(work.cols, cols)), with = FALSE], x[, c(lag.diff.full.names), with = FALSE])
+    data = cbind(data[, c(setdiff(work.cols, cols), "dates"), with = FALSE], x[, c(lag.diff.full.names), with = FALSE])
   }
 
   if (na.pad == FALSE) {
     data = data[, .SD[-max.shift, ], by = eval(c(grouping))]
   }
-
+  setkey(data, "dates")
+  data$dates = NULL
   return(as.data.frame(data))
 }
 
