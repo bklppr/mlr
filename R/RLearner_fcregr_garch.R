@@ -111,10 +111,10 @@ predictLearner.fcregr.garch = function(.learner, .model, .newdata, ...) {
 
   se.fit = .learner$predict.type == "quantile"
   if (!se.fit) {
-    garch.forecast = rugarch::ugarch.forecast(.model$learner.model, ...)
+    garch.forecast = rugarch::ugarchforecast(.model$learner.model, ...)
     p = as.numeric(garch.forecast@forecast$seriesFor)
   } else {
-    garch.forecast = rugarch::ugarch.forecast(.model$learner.model, ...)
+    garch.forecast = rugarch::ugarchforecast(.model$learner.model, ...)
     if (is.null(.model$learner$par.vals$probs)) .model$learner$par.vals$probs = c(.05, .95)
     garch.quantile = lapply(.model$learner$par.vals$probs, function(x) rugarch::quantile(garch.forecast, x))
     p.mean  = as.matrix(garch.forecast@forecast$seriesFor)
