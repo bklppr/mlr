@@ -14,7 +14,7 @@ makeRLearner.fcregr.garch = function() {
       makeIntegerVectorLearnerParam("garchOrder",
                                     len = 2L,
                                     lower = 1L,
-                                    default = c(1,1)),
+                                    default = c(1L, 1L)),
       makeDiscreteLearnerParam("submodel",
                                values = c("GARCH", "TGARCH",
                                           "AVGARCH", "NGARCH",
@@ -27,19 +27,18 @@ makeRLearner.fcregr.garch = function() {
       makeLogicalLearnerParam("variance.targeting", default = FALSE),
       ## END: variance.model
       ## BEGIN: mean.model
-      makeIntegerVectorLearnerParam("armaOrder", len = 2L, lower = 1L, default = c(1,1)),
+      makeIntegerVectorLearnerParam("armaOrder", len = 2L, lower = 1L, default = c(1L, 1L)),
       makeLogicalLearnerParam("include.mean", default = TRUE),
       makeLogicalLearnerParam("archm", default = FALSE),
-      makeDiscreteLearnerParam("archpow", values = c(1L,2L), default = 1L),
+      makeDiscreteLearnerParam("archpow", values = c(1L, 2L), default = 1L),
       makeLogicalLearnerParam("arfima", default = FALSE),
       makeLogicalLearnerParam("archex", default = FALSE),
       ## END: mean.model
-      makeDiscreteLearnerParam("distribution.model", values = c("norm","snorm",
-                                                                "std","sstd",
-                                                                "ged","sged",
-                                                                "nig","ghyp",
-                                                                "jsu"),
-                               default = "norm"),
+      makeDiscreteLearnerParam("distribution.model", values = c("norm", "snorm",
+                                                                "std", "sstd",
+                                                                "ged", "sged",
+                                                                "nig", "ghyp",
+                                                                "jsu"), default = "norm"),
       makeUntypedLearnerParam("start.pars", default = list()),
       makeUntypedLearnerParam("fixed.pars", default = list()),
       # END: spec
@@ -47,20 +46,20 @@ makeRLearner.fcregr.garch = function() {
                                                     "lbfgs", "gosolnp",
                                                     "nloptr", "hybrid"), default = "solnp"),
       makeUntypedLearnerParam("solver.control", default = list()),
-      makeUntypedLearnerParam("numderiv.control", default = list(grad.eps=1e-4, grad.d=0.0001,
-                                                                 grad.zero.tol=sqrt(.Machine$double.eps/7e-7), hess.eps=1e-4, hess.d=0.1,
-                                                                 hess.zero.tol=sqrt(.Machine$double.eps/7e-7), r=4, v=2)),
+      makeUntypedLearnerParam("numderiv.control", default = list(grad.eps = 1e-4, grad.d = 0.0001,
+                                                                 grad.zero.tol = sqrt(.Machine$double.eps/7e-7), hess.eps = 1e-4, hess.d = 0.1,
+                                                                 hess.zero.tol = sqrt(.Machine$double.eps/7e-7), r = 4, v = 2)),
       # BEGIN: fit.control
-      makeDiscreteLearnerParam("stationarity", values = c(0L,1L), default = 1L),
-      makeDiscreteLearnerParam("fixed.se", values = c(0L,1L), default = 0L),
-      makeDiscreteLearnerParam("scale", values = c(0L,1L), default = 0L),
-      makeNumericLearnerParam("rec.init", lower = 1E-10, upper = Inf, special.vals = list('all'), default = expression('all')),
+      makeDiscreteLearnerParam("stationarity", values = c(0L, 1L), default = 1L),
+      makeDiscreteLearnerParam("fixed.se", values = c(0L, 1L), default = 0L),
+      makeDiscreteLearnerParam("scale", values = c(0L, 1L), default = 0L),
+      makeNumericLearnerParam("rec.init", lower = 1E-10, upper = Inf, special.vals = list("all"), default = expression("all")),
       # END: fit.control
       makeIntegerLearnerParam("n.ahead", lower = 1L, default = 10L, when = "predict"),
       makeIntegerLearnerParam("n.roll", lower = 0L, default = 0L, when = "predict"),
       makeUntypedLearnerParam("probs", default = c(.05, .95), when = "predict")
     ),
-    properties = c("numerics","quantile"),
+    properties = c("numerics", "quantile"),
     name = "Generalized AutoRegressive Conditional Heteroskedasticity",
     short.name = "garch"
   )
@@ -72,8 +71,8 @@ trainLearner.fcregr.garch = function(.learner, .task, .subset, .weights = NULL, 
   # get names of ugarchspec args
   spec.names.args = formals(rugarch::ugarchspec)
   spec.names = names(spec.names.args)
-  spec.names.variance.model = names(spec.names.args[['variance.model']])
-  spec.names.mean.model = names(spec.names.args[['mean.model']])
+  spec.names.variance.model = names(spec.names.args[["variance.model"]])
+  spec.names.mean.model = names(spec.names.args[["mean.model"]])
   #subset into variance.model, mean.model, spec, and all other
   variance.model.args = dots[intersect(names(dots), spec.names.variance.model)]
   mean.model.args = dots[intersect(names(dots), spec.names.mean.model)]
@@ -85,7 +84,7 @@ trainLearner.fcregr.garch = function(.learner, .task, .subset, .weights = NULL, 
   garch.spec = function(...) {
     rugarch::ugarchspec(...)
   }
-  spec = do.call(garch.spec,garch.spec.args)
+  spec = do.call(garch.spec, garch.spec.args)
   # get names of ugarchfit args
   garch.fit.names.args = formals(rugarch::ugarchfit)
   garch.fit.names = names(garch.fit.names.args)
@@ -97,14 +96,14 @@ trainLearner.fcregr.garch = function(.learner, .task, .subset, .weights = NULL, 
                            fit.ctrl.names))
 
 
-  data = getTaskData(.task,.subset,target.extra = TRUE)
+  data = getTaskData(.task, .subset, target.extra = TRUE)
   data$target = ts(data$target, start = 1, frequency = .task$task.desc$frequency)
 
   garch.fit.args = c(dots, spec = list(spec), fit.control = list(fit.ctrl.args))
   garch.fun = function(...) {
     rugarch::ugarchfit(data = data$target, ...)
   }
-  do.call(garch.fun,garch.fit.args)
+  do.call(garch.fun, garch.fit.args)
 }
 
 #'@export
@@ -112,18 +111,18 @@ predictLearner.fcregr.garch = function(.learner, .model, .newdata, ...) {
 
   se.fit = .learner$predict.type == "quantile"
   if (!se.fit) {
-    garchForecast = rugarch::ugarchforecast(.model$learner.model, ...)
-    p = as.numeric(garchForecast@forecast$seriesFor)
+    garch.forecast = rugarch::ugarch.forecast(.model$learner.model, ...)
+    p = as.numeric(garch.forecast@forecast$seriesFor)
   } else {
-    garchForecast = rugarch::ugarchforecast(.model$learner.model, ...)
-    if (is.null(.model$learner$par.vals$probs)) .model$learner$par.vals$probs = c(.05,.95)
-    garchQuantile = lapply(.model$learner$par.vals$probs, function(x) rugarch::quantile(garchForecast, x))
-    pMean  = as.matrix(garchForecast@forecast$seriesFor)
-    pQuantile = do.call(cbind, garchQuantile)
-    colnames(pMean)  = "point_forecast"
+    garch.forecast = rugarch::ugarch.forecast(.model$learner.model, ...)
+    if (is.null(.model$learner$par.vals$probs)) .model$learner$par.vals$probs = c(.05, .95)
+    garch.quantile = lapply(.model$learner$par.vals$probs, function(x) rugarch::quantile(garch.forecast, x))
+    p.mean  = as.matrix(garch.forecast@forecast$seriesFor)
+    p.quantile = do.call(cbind, garch.quantile)
+    colnames(p.mean)  = "point_forecast"
     #FIXME: Need to get names of quantiles
-    colnames(pQuantile) = stri_paste("quantile",.model$learner$par.vals$probs )
-    p = cbind(pMean,pQuantile)
+    colnames(p.quantile) = stri_paste("quantile", .model$learner$par.vals$probs )
+    p = cbind(p.mean, p.quantile)
   }
   return(p)
 }

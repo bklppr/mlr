@@ -1,5 +1,5 @@
 # dates has to be defined to avoid a warning in R CMD CHECK
-globalVariables(c("dates"))
+globalVariables("dates")
 #' @title Generate lags and differences for feature variables
 #'
 #' @description Replace all variables with their generated lagged and differenced variables.
@@ -48,12 +48,12 @@ createLagDiffFeatures = function(obj, target = character(0L), lag = 0L, differen
   seasonal.difference.lag = 0L, frequency = 1L,
   na.pad = FALSE, return.nonlag = TRUE, grouping = NULL, date.col) {
 
-  assertInteger(lag,lower = 0L, upper = 1000L)
-  assertInteger(difference,lower = 0L, upper = 1000L, len = 1L)
-  assertInteger(difference.lag,lower = 0L, upper = 1000L, len = 1L)
-  assertInteger(seasonal.lag,lower = 0L, upper = 1000L)
-  assertInteger(seasonal.difference,lower = 0L, upper = 1000L, len = 1L)
-  assertInteger(seasonal.difference.lag,lower = 0L, upper = 1000L, len = 1L)
+  assertInteger(lag, lower = 0L, upper = 1000L)
+  assertInteger(difference, lower = 0L, upper = 1000L, len = 1L)
+  assertInteger(difference.lag, lower = 0L, upper = 1000L, len = 1L)
+  assertInteger(seasonal.lag, lower = 0L, upper = 1000L)
+  assertInteger(seasonal.difference, lower = 0L, upper = 1000L, len = 1L)
+  assertInteger(seasonal.difference.lag, lower = 0L, upper = 1000L, len = 1L)
   assertLogical(na.pad)
   assert(checkClass(obj, "data.frame"), checkClass(obj, "Task"))
   assertCharacter(target, any.missing = FALSE)
@@ -76,13 +76,13 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
   } else {
     data = as.data.table(obj)
     data[, dates := date.col]
-    suppressWarnings(setkeyv(data,c(grouping, "dates")))
+    suppressWarnings(setkeyv(data, c(grouping, "dates")))
   }
   work.cols = colnames(data)
   work.cols = work.cols[!(work.cols %in% "dates")]
   if (!is.null(cols)) {
     assertSubset(cols, work.cols)
-    x = data[, c(cols,grouping) , with = FALSE]
+    x = data[, c(cols, grouping), with = FALSE]
   } else {
     cols = work.cols
     x = data[, cols, with = FALSE]
@@ -94,19 +94,19 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
     lag.vars = cols
     lag.value = lag
     lag.levels = as.vector(vapply(lag.value, function(levels) rep(levels, length(lag.vars)), c(rep(1.0, length(lag.vars)))))
-    lag.names = paste0(lag.vars,".lag.", lag.levels)
+    lag.names = paste0(lag.vars, ".lag.", lag.levels)
     x[, c(lag.names) := shift(.SD, lag.value), by = eval(c(grouping)), .SDcols = lag.vars]
     lag.diff.full.names = c(lag.diff.full.names, lag.names)
   }
 
-  pad  <- function(x, n) {
-    len.diff <- n - length(x)
+  pad  = function(x, n) {
+    len.diff = n - length(x)
     c(rep(NA, len.diff), x)
   }
 
   if (any(difference > 0) | any(difference.lag > 0)) {
 
-    diff.vars = vlapply(x[,c(cols), with = FALSE],is.numeric)
+    diff.vars = vlapply(x[, c(cols), with = FALSE], is.numeric)
     diff.vars = cols[diff.vars]
     # Since the default for both is zero, which would throw an error, set the zero one to 1
     if (any(difference > 0)) {
@@ -125,7 +125,7 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
       diff.iter = as.numeric(diff.table[i, ])
       diff.lag.names = as.numeric(rep(diff.iter[2], length(diff.vars)))
       diff.diff.names = as.numeric(rep(diff.iter[1], length(diff.vars)))
-      diff.names = paste0(diff.vars,".diff.", diff.diff.names, ".lag.", diff.lag.names)
+      diff.names = paste0(diff.vars, ".diff.", diff.diff.names, ".lag.", diff.lag.names)
       x[, c(diff.names) := lapply(.SD,
         function(xx) pad(diff(xx, lag = diff.iter[2], differences = diff.iter[1]), length(xx))),
         by = eval(c(grouping)), .SDcols = diff.vars]
@@ -141,14 +141,14 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
       seasonal.lag.vars = cols
       seasonal.lag.value = seasonal.lag * frequency
       seasonal.lag.levels = as.vector(vapply(seasonal.lag.value, function(levels) rep(levels, length(seasonal.lag.vars)), c(rep(1.0, length(seasonal.lag.vars)))))
-      seasonal.lag.names = paste0(seasonal.lag.vars,".lag.", seasonal.lag.levels)
+      seasonal.lag.names = paste0(seasonal.lag.vars, ".lag.", seasonal.lag.levels)
       x[, c(seasonal.lag.names) := shift(.SD, seasonal.lag.value), by = eval(c(grouping)), .SDcols = seasonal.lag.vars]
       lag.diff.full.names = c(lag.diff.full.names, seasonal.lag.names)
     }
 
     if (any(seasonal.difference > 0) | any(seasonal.difference.lag > 0)) {
 
-      diff.vars = vlapply(x[,c(cols), with = FALSE],is.numeric)
+      diff.vars = vlapply(x[, c(cols), with = FALSE], is.numeric)
       diff.vars = cols[diff.vars]
       # Since the default for both is zero, which would throw an error, set the zero one to 1
       if (any(seasonal.difference > 0)) {
@@ -161,7 +161,7 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
       } else {
         seasonal.difference.lag.value = 1
       }
-      seasonal.diff.vars = vlapply(x[,c(cols), with = FALSE],is.numeric)
+      seasonal.diff.vars = vlapply(x[, c(cols), with = FALSE], is.numeric)
       seasonal.diff.vars = cols[seasonal.diff.vars]
 
       seasonal.diff.table = expand.grid(seasonal.difference.value, seasonal.difference.lag.value)
@@ -170,7 +170,7 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
         seasonal.diff.iter = as.numeric(seasonal.diff.table[i, ])
         seasonal.diff.lag.names = as.numeric(rep(seasonal.diff.iter[2], length(seasonal.diff.vars)))
         seasonal.diff.diff.names = as.numeric(rep(seasonal.diff.iter[1], length(seasonal.diff.vars)))
-        seasonal.diff.names = paste0(seasonal.diff.vars,".diff.", seasonal.diff.diff.names, ".lag.", seasonal.diff.lag.names)
+        seasonal.diff.names = paste0(seasonal.diff.vars, ".diff.", seasonal.diff.diff.names, ".lag.", seasonal.diff.lag.names)
         x[, c(seasonal.diff.names) := lapply(.SD,
           function(xx) pad(diff(xx, lag = seasonal.diff.iter[2], differences = seasonal.diff.iter[1]), length(xx))),
           by = eval(c(grouping)), .SDcols = seasonal.diff.vars]
@@ -197,7 +197,7 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
   }
 
   if (na.pad == FALSE) {
-    data = data[, .SD[-max.shift,], by = eval(c(grouping))]
+    data = data[, .SD[-max.shift, ], by = eval(c(grouping))]
   }
 
   return(as.data.frame(data))
@@ -235,7 +235,7 @@ createLagDiffFeatures.Task = function(obj, target = character(0L), lag = 0L, dif
     frequency = frequency, na.pad = na.pad,
     return.nonlag = return.nonlag, grouping = grouping, date.col = date.col)
 
-  obj = changeData(obj,data = data)
+  obj = changeData(obj, data = data)
 
   max.shift = max(lag, seasonal.lag * frequency,
     max(difference) * max(difference.lag),

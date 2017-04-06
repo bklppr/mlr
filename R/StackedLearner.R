@@ -739,7 +739,7 @@ stackGrowingCV = function(learner, task) {
   #rin$desc$iters = length(rin$test.inds)
   for (i in seq_along(bls)) {
     bl = bls[[i]]
-    r = resample(learner = bl,task = task,resampling = rin, show.info = FALSE)
+    r = resample(learner = bl, task = task, resampling = rin, show.info = FALSE)
     probs[[i]] = getResponse(r$pred, full.matrix = FALSE)
     # also fit all base models again on the complete original data set
     base.models[[i]] = train(bl, task)
@@ -760,7 +760,7 @@ stackGrowingCV = function(learner, task) {
 
   # Have to change index with multiple targets
   if (length(task$task.desc$target) > 1L)
-    probs[[tn]] = getTaskTargets(task)[test.inds,]
+    probs[[tn]] = getTaskTargets(task)[test.inds, ]
   else
     probs[[tn]] = getTaskTargets(task)[test.inds]
 

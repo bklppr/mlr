@@ -7,7 +7,7 @@ makeRLearner.mfcregr.BigVAR = function() {
       #constructModel params
       # p, struct, and gran have no default
       makeIntegerLearnerParam("p", lower = 1L, default = 1L),
-      makeDiscreteLearnerParam("struct", values = c("Basic", "Lag","SparseLag","SparseOO",
+      makeDiscreteLearnerParam("struct", values = c("Basic", "Lag", "SparseLag", "SparseOO",
                                "OwnOther", "EFX", "HVARC", "HVAROO", "HVARELEM", "Tapered")),
       makeIntegerVectorLearnerParam("gran", len = 2L, lower = 1L),
       makeLogicalLearnerParam("RVAR", default = FALSE),
@@ -16,8 +16,8 @@ makeRLearner.mfcregr.BigVAR = function() {
       makeLogicalLearnerParam("MN", default = FALSE),
       makeLogicalLearnerParam("verbose", default = FALSE),
       makeLogicalLearnerParam("IC", default = TRUE),
-      makeIntegerLearnerParam("T1", lower = 1L, default = expression(floor(nrow(Y)/3))),
-      makeIntegerLearnerParam("T2", lower = 1L, default = expression(2 * floor(nrow(Y)/3))),
+      makeIntegerLearnerParam("T1", lower = 1L, default = expression(floor(nrow(Y) / 3))),
+      makeIntegerLearnerParam("T2", lower = 1L, default = expression(2 * floor(nrow(Y) / 3))),
       makeLogicalLearnerParam("ONESE", default = FALSE),
       makeLogicalLearnerParam("ownlambdas", default = FALSE),
       makeUntypedLearnerParam("alpha", default = as.double(NULL)),
@@ -27,7 +27,7 @@ makeRLearner.mfcregr.BigVAR = function() {
       makeIntegerLearnerParam("n.ahead", lower = 1, default = 1, when = "predict"),
       keys = "Y"
     ),
-    properties = c("numerics"),
+    properties = "numerics",
     name = "Vector AutoRegression Models with Endogeneous and Exogenous Variables",
     short.name = "BigVAR",
     note = "Because of argument p and R's partial matching, arguments in makeLearner must be passed to par.vals as a list. dates are automatically passed to the date argument."

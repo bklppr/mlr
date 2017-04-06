@@ -29,7 +29,7 @@ makeMultiForecastRegrTask = function(id = deparse(substitute(data)), data, targe
     if (!is.target.all) {
       assertNumeric(data[[target]], any.missing = FALSE, finite = TRUE, .var.name = target)
     } else if (is.target.all) {
-      lapply(data,assertNumeric, any.missing = FALSE, finite = TRUE)
+      lapply(data, assertNumeric, any.missing = FALSE, finite = TRUE)
     }
     if (any(duplicated(dates)))
       stop(catf("Multiple observations for %s. Dates must be unique.", dates[any(duplicated(dates)), ]))
@@ -61,7 +61,7 @@ makeMultiForecastRegrTask = function(id = deparse(substitute(data)), data, targe
 
   task = makeSupervisedTask("mfcregr", data, target, weights, blocking, fixup.data = fixup.data, check.data = check.data)
   task$task.desc = makeMultiForecastRegrTaskDesc(id, data, target, weights, blocking, frequency, dates)
-  addClasses(task, c("MultiForecastRegrTask","TimeTask"))
+  addClasses(task, c("MultiForecastRegrTask", "TimeTask"))
 }
 
 makeMultiForecastRegrTaskDesc = function(id, data, target, weights, blocking, frequency, dates) {

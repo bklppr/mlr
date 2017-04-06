@@ -4,8 +4,8 @@ makeRLearner.fcregr.arfima = function() {
     cl = "fcregr.arfima",
     package = "forecast",
     par.set = makeParamSet(
-      makeNumericVectorLearnerParam(id = "drange", len = 2L, lower = 0, default = c(0,0.5)),
-      makeDiscreteLearnerParam(id = "estim", values = c("mle","ls"), default = "mle"),
+      makeNumericVectorLearnerParam(id = "drange", len = 2L, lower = 0, default = c(0, 0.5)),
+      makeDiscreteLearnerParam(id = "estim", values = c("mle", "ls"), default = "mle"),
       makeUntypedLearnerParam(id = "model", default = NULL),
       # auto.arima params
       makeIntegerLearnerParam(id = "d", lower = 0, upper = Inf),
@@ -28,7 +28,7 @@ makeRLearner.fcregr.arfima = function() {
       makeLogicalLearnerParam(id = "trace", default = FALSE),
       makeLogicalLearnerParam(id = "approximation", default = expression(length(x) > 100 | frequency(x) > 12)),
       makeIntegerLearnerParam(id = "truncate", lower = 1, default = NULL, special.vals = list(NULL)),
-      makeDiscreteLearnerParam(id = "test", values = c("kpss","adf","pp"), default = "kpss"),
+      makeDiscreteLearnerParam(id = "test", values = c("kpss", "adf", "pp"), default = "kpss"),
       makeDiscreteLearnerParam(id = "seasonal.test", values = c("ocsb", "ch"), default = "ocsb"),
       makeLogicalLearnerParam(id = "allowdrift", default = TRUE),
       makeLogicalLearnerParam(id = "allowmean", default = TRUE),
@@ -58,7 +58,7 @@ makeRLearner.fcregr.arfima = function() {
       makeLogicalLearnerParam(id = "future", default = TRUE),
       keys = c("x", "object", "arma", "n")
     ),
-    properties = c("numerics","quantile"),
+    properties = c("numerics", "quantile"),
     name = "AutoRegressive Fractionally Integrated Moving Average",
     short.name = "arfima",
     note = "All variables besides the target will be passed to the xreg argument."
@@ -68,7 +68,7 @@ makeRLearner.fcregr.arfima = function() {
 #'@export
 trainLearner.fcregr.arfima = function(.learner, .task, .subset, .weights = NULL, ...) {
 
-  data = getTaskData(.task,.subset,target.extra = TRUE)
+  data = getTaskData(.task, .subset, target.extra = TRUE)
   data$target = ts(data$target, start = 1, frequency = .task$task.desc$frequency)
   forecast::arfima(y = data$target, ...)
 }
@@ -80,13 +80,13 @@ predictLearner.fcregr.arfima = function(.learner, .model, .newdata, ...) {
     p = as.numeric(forecast::forecast(.model$learner.model, ...)$mean)
   } else {
     pse = forecast::forecast(.model$learner.model, ...)
-    pMean  = as.matrix(pse$mean)
-    pLower = pse$lower
-    pUpper = pse$upper
-    colnames(pMean)  = "point_forecast"
-    colnames(pLower) = stri_paste("lower_",pse$level)
-    colnames(pUpper) = stri_paste("upper_",pse$level)
-    p = cbind(pMean,pLower,pUpper)
+    p.mean  = as.matrix(pse$mean)
+    p.lower = pse$lower
+    p.upper = pse$upper
+    colnames(p.mean)  = "point_forecast"
+    colnames(p.lower) = stri_paste("lower_", pse$level)
+    colnames(p.upper) = stri_paste("upper_", pse$level)
+    p = cbind(p.mean, p.lower, p.upper)
   }
   return(p)
 }

@@ -23,7 +23,7 @@ makeRLearner.fcregr.auto.arima = function() {
       makeLogicalLearnerParam(id = "trace", default = FALSE),
       makeLogicalLearnerParam(id = "approximation", default = expression(length(x) > 100 | frequency(x) > 12)),
       makeIntegerLearnerParam(id = "truncate", lower = 1, default = NULL, special.vals = list(NULL)),
-      makeDiscreteLearnerParam(id = "test", values = c("kpss","adf","pp"), default = "kpss"),
+      makeDiscreteLearnerParam(id = "test", values = c("kpss", "adf", "pp"), default = "kpss"),
       makeDiscreteLearnerParam(id = "seasonal.test", values = c("ocsb", "ch"), default = "ocsb"),
       makeLogicalLearnerParam(id = "allowdrift", default = TRUE),
       makeLogicalLearnerParam(id = "allowmean", default = TRUE),
@@ -44,7 +44,7 @@ makeRLearner.fcregr.auto.arima = function() {
       makeUntypedLearnerParam("optim.controls", default = list(), tunable = FALSE),
       makeNumericLearnerParam("kappa", lower = 1e6, upper = Inf, tunable = FALSE),
       # prediction
-      makeIntegerLearnerParam(id = "h", lower = 0, upper = Inf, default = expression(ifelse(object$arma[5]>1,2*object$arma[5],10)), tunable = FALSE,
+      makeIntegerLearnerParam(id = "h", lower = 0, upper = Inf, default = expression(ifelse(object$arma[5] > 1, 2 * object$arma[5], 10)), tunable = FALSE,
                               when = "predict"),
       makeLogicalLearnerParam(id = "bootstrap", default = FALSE, when = "predict", tunable = FALSE),
       makeNumericVectorLearnerParam(id = "level", len = NA, default = c(80, 95), when = "predict", tunable = FALSE),
@@ -56,7 +56,7 @@ makeRLearner.fcregr.auto.arima = function() {
       makeLogicalLearnerParam(id = "future", default = TRUE),
       keys = c("x", "object", "arma")
     ),
-    properties = c("numerics","quantile"),
+    properties = c("numerics", "quantile"),
     name = "Automated Autoregressive Integrated Moving Average Model Selection",
     short.name = "auto.arima",
     note = "All variables besides the target will be passed to the xreg argument."
@@ -66,11 +66,11 @@ makeRLearner.fcregr.auto.arima = function() {
 #'@export
 trainLearner.fcregr.auto.arima = function(.learner, .task, .subset, .weights = NULL, ...) {
 
-  data = getTaskData(.task,.subset, target.extra = TRUE)
+  data = getTaskData(.task, .subset, target.extra = TRUE)
   data$target = ts(data$target, start = 1, frequency = .task$task.desc$frequency)
   if (ncol(data$data) != 0) {
     data$data = ts(data$data, start = 1, frequency = .task$task.desc$frequency)
-    forecast::auto.arima(y = data$target,xreg = data$data, ...)
+    forecast::auto.arima(y = data$target, xreg = data$data, ...)
   } else {
     forecast::auto.arima(y = data$target, ...)
   }
@@ -104,13 +104,13 @@ predictLearner.fcregr.auto.arima = function(.learner, .model, .newdata, ...) {
   if (!se.fit) {
     p = as.numeric(p$mean)
   } else {
-    pMean  = as.matrix(p$mean)
-    pLower = p$lower
-    pUpper = p$upper
-    colnames(pMean)  = "point_forecast"
-    colnames(pLower) = stri_paste("lower_",p$level)
-    colnames(pUpper) = stri_paste("upper_",p$level)
-    p = cbind(pMean,pLower,pUpper)
+    p.mean  = as.matrix(p$mean)
+    p.lower = p$lower
+    p.upper = p$upper
+    colnames(p.mean) = "point_forecast"
+    colnames(p.lower) = stri_paste("lower_", p$level)
+    colnames(p.upper) = stri_paste("upper_", p$level)
+    p = cbind(p.mean, p.lower, p.upper)
   }
   return(p)
 

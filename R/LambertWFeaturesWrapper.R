@@ -48,8 +48,6 @@ makePreprocWrapperLambert = function(learner, type = c("h", "hh", "s"),
     x = LambertW::Gaussianize(x, type = control$type, method = control$methods,
                               verbose = control$verbose, tau.mat = control$tau.mat)
     data = cbindSetDiff(x = x$input, data, cns, nums)
-    # TODO: we should incude a post-prediction function in learners
-    #  Then we can ungaussianize the target variable
 
     return(data)
   }

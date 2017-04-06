@@ -15,10 +15,10 @@ makeRLearner.fcregr.nnetar = function() {
       makeLogicalLearnerParam(id = "scale.inputs", default = TRUE),
       # nnet params
       makeIntegerLearnerParam(id = "maxit", default = 100L, lower = 1L),
-      makeLogicalLearnerParam(id = "linout", default = FALSE, requires = quote(entropy==FALSE && softmax==FALSE && censored==FALSE)),
-      makeLogicalLearnerParam(id = "entropy", default = FALSE, requires = quote(linout==FALSE && softmax==FALSE && censored==FALSE)),
-      makeLogicalLearnerParam(id = "softmax", default = FALSE, requires = quote(entropy==FALSE && linout==FALSE && censored==FALSE)),
-      makeLogicalLearnerParam(id = "censored", default = FALSE, requires = quote(linout==FALSE && softmax==FALSE && entropy==FALSE)),
+      makeLogicalLearnerParam(id = "linout", default = FALSE, requires = quote(entropy == FALSE && softmax == FALSE && censored == FALSE)),
+      makeLogicalLearnerParam(id = "entropy", default = FALSE, requires = quote(linout == FALSE && softmax == FALSE && censored == FALSE)),
+      makeLogicalLearnerParam(id = "softmax", default = FALSE, requires = quote(entropy == FALSE && linout == FALSE && censored == FALSE)),
+      makeLogicalLearnerParam(id = "censored", default = FALSE, requires = quote(linout == FALSE && softmax == FALSE && entropy == FALSE)),
       makeLogicalLearnerParam(id = "skip", default = FALSE),
       makeNumericLearnerParam(id = "rang", default = 0.7),
       makeNumericLearnerParam(id = "decay", default = 0, lower = 0),
@@ -32,7 +32,7 @@ makeRLearner.fcregr.nnetar = function() {
       makeIntegerLearnerParam(id = "h", lower = 0L, default = expression(ifelse(object$m > 1, 2 * object$m, 10)),
                              when = "predict", tunable = FALSE),
       makeLogicalLearnerParam(id = "PI", default = FALSE, tunable = FALSE, when = "predict"),
-      makeNumericVectorLearnerParam(id = "level", len = NA, default = c(80,95), when = "predict", tunable = FALSE),
+      makeNumericVectorLearnerParam(id = "level", len = NA, default = c(80, 95), when = "predict", tunable = FALSE),
       makeLogicalLearnerParam(id = "bootstrap", default = FALSE, when = "predict", tunable = FALSE),
       makeIntegerLearnerParam(id = "npaths", default = 1000, when = "predict"),
       makeUntypedLearnerParam(id = "innov", default = NULL, when = "predict"),
@@ -50,19 +50,19 @@ makeRLearner.fcregr.nnetar = function() {
 }
 #'@export
 trainLearner.fcregr.nnetar = function(.learner, .task, .subset, .weights = NULL, ...) {
-  data = getTaskData(.task,.subset,target.extra = TRUE)
-  data$target = ts(data$target, start = 1, frequency = .task$task.desc$frequency)
+  data = getTaskData(.task, .subset, target.extra = TRUE)
+  data$target = ts(data$target, start = 1, frequency = getTaskDesc(.task)$frequency)
   if (is.null(.weights)) {
     if (ncol(data$data) != 0) {
-      data$data = ts(data$data, start = 1, frequency = .task$task.desc$frequency)
-      forecast::nnetar(y = data$target,xreg = data$data, ...)
+      data$data = ts(data$data, start = 1, frequency = getTaskDesc(.task)$frequency)
+      forecast::nnetar(y = data$target, xreg = data$data, ...)
     } else {
       forecast::nnetar(y = data$target, ...)
     }
   } else {
     if (ncol(data$data) != 0) {
       data$data = ts(data$data, start = 1, frequency = .task$task.desc$frequency)
-      forecast::nnetar(y = data$target,xreg = data$data, ...)
+      forecast::nnetar(y = data$target, xreg = data$data, ...)
     } else {
       forecast::nnetar(y = data$target, ...)
     }
@@ -74,18 +74,18 @@ trainLearner.fcregr.nnetar = function(.learner, .task, .subset, .weights = NULL,
 #' @export
 updateLearner.fcregr.nnetar = function(.learner, .model, .newdata, .task, .truth, .weights = NULL, ...) {
   target = getTaskTargetNames(.task)
-  data = ts(.truth, start = 1, frequency = .task$task.desc$frequency)
+  data = ts(.truth, start = 1, frequency = getTaskDesc(.task)$frequency)
   if (is.null(.weights)) {
     if (ncol(.newdata) == 0) {
       forecast::nnetar(y = data, model = .model$learner.model, ...)
     } else {
-      .newdata = ts(.newdata, start = 1, frequency = .task$task.desc$frequency)
-      forecast::nnetar(y = data,xreg = .newdata, model = .model$learner.model, ...)
+      .newdata = ts(.newdata, start = 1, frequency = getTaskDesc(.task)$frequency)
+      forecast::nnetar(y = data, xreg = .newdata, model = .model$learner.model, ...)
     }
   } else {
     if (ncol(.newdata) != 0) {
       newdata = ts(.newdata, start = 1, frequency = .task$task.desc$frequency)
-      forecast::nnetar(y = data,xreg = newdata, model = .model$learner.model, weights = .weights, ...)
+      forecast::nnetar(y = data, xreg = newdata, model = .model$learner.model, weights = .weights, ...)
     } else {
       forecast::nnetar(y = data, model = .model$learner.model, weights = .weights, ...)
     }
@@ -112,13 +112,13 @@ predictLearner.fcregr.nnetar = function(.learner, .model, .newdata, ...) {
   if (!se.fit) {
     p = as.numeric(p$mean)
   } else {
-    pMean  = as.matrix(p$mean)
-    pLower = p$lower
-    pUpper = p$upper
-    colnames(pMean)  = "point_forecast"
-    colnames(pLower) = stri_paste("lower_",p$level)
-    colnames(pUpper) = stri_paste("upper_",p$level)
-    p = cbind(pMean,pLower,pUpper)
+    p.mean  = as.matrix(p$mean)
+    p.lower = p$lower
+    p.upper = p$upper
+    colnames(p.mean)  = "point_forecast"
+    colnames(p.lower) = stri_paste("lower_", p$level)
+    colnames(p.upper) = stri_paste("upper_", p$level)
+    p = cbind(p.mean, p.lower, p.upper)
   }
   return(p)
 }

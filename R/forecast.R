@@ -60,9 +60,9 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
   model = object
   learner = model$learner
   td = model$task.desc
-
+  assertIntegerish(h, lower = 1)
   assertClass(model, classes = "WrappedModel")
-  if (any(c("fcregr","mfcregr") %in% model$learner$type ))
+  if (any(c("fcregr", "mfcregr") %in% model$learner$type ))
     if (!missing(newdata))
       return(predict(object, newdata = newdata))
   else
@@ -71,9 +71,8 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
   if (!missing(task))
     stop("Tasks are only accepted for fcregr and mfcregr tasks.
          forecast is only used after you have already trained your learner so only newdata is accepted")
-  assertIntegerish(h,lower = 1)
   if (is.null(td$pre.proc))
-    stop("Forecasting requires lags")
+    stop("Forecasting with a learner requires a createLagDiffFeatures preproc.")
 
   if (!is.null(newdata)) {
     if (class(newdata)[1] != "data.frame") {
@@ -101,12 +100,12 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
 
 
   proc.vals = td$pre.proc$par.vals
-  max.lag = max(c(proc.vals$lag,proc.vals$difference.lag,
+  max.lag = max(c(proc.vals$lag, proc.vals$difference.lag,
                   proc.vals$seasonal.lag * proc.vals$frequency,
                   proc.vals$seasonal.difference.lag * proc.vals$frequency))
 
   # This just cuts the amount of data we need to use
-  data = td$pre.proc$data.original[,td$target, drop = FALSE]
+  data = td$pre.proc$data.original[, td$target, drop = FALSE]
   if (is.null(truth)) {
     row.dates = as.POSIXct(proc.vals$date.col)
     diff.time = difftime(row.dates[2], row.dates[1], units = "auto")
