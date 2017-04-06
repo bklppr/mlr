@@ -52,7 +52,7 @@
 #'    and \code{FixedCV}. Default is 1}
 #'   \item{initial.window [\code{numeric(1)}]}{Fraction of observations to start with
 #'    in \code{GrowthCV} and \code{FixedCV}. Default is 0.5}
-#'   \item{skip [\code{numeric(1)}]}{ Fraction of windows to skip in \code{GrowthCV} and \code{FixedCV}. Default is 0}
+#'   \item{skip [\code{integer(1)}]}{ The number of windows to skip in \code{GrowingCV} and \code{FixedCV}. Default is 0}
 #'   }
 #' @param stratify [\code{logical(1)}]\cr
 #'   Should stratification be done for the target variable?
@@ -150,7 +150,7 @@ makeResampleDescRepCV = function(reps = 10L, folds = 10L) {
 makeResampleDescFixedCV = function(horizon = 1L, initial.window = .5, skip = 0) {
   horizon = asInteger(horizon, lower = 1L, upper = Inf)
   assertNumeric(initial.window, lower = 0, upper = 1)
-  assertNumeric(skip, lower = 0L, upper = 1)
+  skip = asInteger(skip, lower = 0L, upper = Inf)
   makeResampleDescInternal("Fixed", iters = NA_integer_,  horizon = horizon,
     initial.window = initial.window, skip = skip)
 }
@@ -158,7 +158,7 @@ makeResampleDescFixedCV = function(horizon = 1L, initial.window = .5, skip = 0) 
 makeResampleDescGrowingCV = function(horizon = 1L, initial.window = .5, skip = 0) {
   horizon = asInteger(horizon, lower = 1L, upper = Inf)
   assertNumeric(initial.window, lower = 0, upper = 1)
-  assertNumeric(skip, lower = 0L, upper = 1)
+  skip = asInteger(skip, lower = 0L, upper = Inf)
   makeResampleDescInternal("Growing", iters = NA_integer_, horizon = horizon,
     initial.window = initial.window, skip = skip)
 }
@@ -192,16 +192,16 @@ print.RepCVDesc = function(x, ...) {
 
 #' @export
 print.GrowingCVDesc = function(x, ...) {
-  catf("Window description:\n %s: %.2f %% of observations in initial window and a horizon of %i.",
-    x$id, x$initial.window * 100, x$horizon)
+  catf("Window description:\n %s: %.2f %% in initial window, horizon of %i, and skipping %i windows.",
+    x$id, x$initial.window * 100, x$horizon, x$skip)
   catf("Predict: %s", x$predict)
   catf("Stratification: %s", x$stratify)
 }
 
 #' @export
 print.FixedCVDesc = function(x, ...) {
-  catf("Window description:\n %s: %.2f %% of observations in initial window and a horizon of %i.",
-    x$id, x$initial.window * 100, x$horizon)
+  catf("Window description:\n %s: %.2f %% in initial window, horizon of %i, and skipping %i windows.",
+    x$id, x$initial.window * 100, x$horizon, x$skip)
   catf("Predict: %s", x$predict)
   catf("Stratification: %s", x$stratify)
 }

@@ -46,7 +46,7 @@ instantiateResampleInstance.FixedCVDesc = function(desc, size, task = NULL) {
     stop(catf("The initial window is %i observations while the data is %i observations. \n
       There is not enough data left (%i observations) to create a test set for a %i size horizon",
       initial.window.abs, size, initial.window.abs - size, desc$horizon))
-  skip = floor(desc$skip * size)
+  skip = desc$skip
   stops  = (seq(size))[initial.window.abs:(size - desc$horizon)]
   starts = stops - initial.window.abs + 1
   train.inds = mapply(seq, starts, stops, SIMPLIFY = FALSE)
@@ -74,7 +74,7 @@ instantiateResampleInstance.GrowingCVDesc = function(desc, size, task = NULL) {
     stop(catf("The initial window is %i observations while the data is %i observations. \n
       There is not enough data left (%i observations) to create a test set for a %i size horizon",
       initial.window.abs, size, initial.window.abs - size, desc$horizon))
-  skip = floor(desc$skip * size)
+  skip = desc$skip
   stops  = (seq(from = 1, to = size))[initial.window.abs:(size - desc$horizon)]
   starts = rep(1, length(stops))
   train.inds = mapply(seq, starts, stops, SIMPLIFY = FALSE)
