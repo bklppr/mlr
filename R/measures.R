@@ -106,13 +106,13 @@ mase = makeMeasure(
   id = "mase",
   minimize = TRUE,
   name = "Mean Absolute Scaled Error",
-  properties = c("regr", "fcregr", "mfcregr", "req.pred", "req.truth", "req.task"),
+  properties = c("regr", "fcregr", "mfcregr", "req.pred", "req.truth", "req.task", "req.model"),
   best = 0,
   worst = Inf,
   fun = function(task, model, pred, feats, extra.args){
     truth = getPredictionTruth(pred)
     response = getPredictionResponse(pred)
-    target = getTaskTargets(task)
+    target = getTaskTargets(task)[model$subset]
     frequency = getTaskDesc(task)$frequency
     measureMASE(truth, response, target, frequency)
   }
