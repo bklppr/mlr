@@ -58,11 +58,19 @@ instantiateResampleInstance.FixedCVDesc = function(desc, size, task = NULL) {
   }
 
   if (skip > 0) {
-    train.inds = thin(train.inds, skip = skip + 1)
-    test.inds = thin(test.inds, skip = skip + 1)
+    train.inds = thin(train.inds, skip = skip)
+    test.inds = thin(test.inds, skip = skip)
   }
+
   if (length(test.inds) == 0)
     stop("Skip is too large and has removed all resampling instances. Please lower the value of skip.")
+
+  # If the last value if not included, shift everything over by one
+  if (test.inds[[length(test.inds)]][desc$horizon] != size) {
+
+    train.inds = lapply(train.inds, function(x) x + 1)
+    test.inds = lapply(test.inds, function(x) x + 1)
+  }
   desc$iters = length(test.inds)
   makeResampleInstanceInternal(desc, size, train.inds = train.inds, test.inds = test.inds )
 }
@@ -80,6 +88,7 @@ instantiateResampleInstance.GrowingCVDesc = function(desc, size, task = NULL) {
   train.inds = mapply(seq, starts, stops, SIMPLIFY = FALSE)
   test.inds  = mapply(seq, stops + 1, stops + desc$horizon, SIMPLIFY = FALSE)
 
+
   thin = function(x, skip = 0) {
     n = length(x)
     x[seq(1, n, by = skip)]
@@ -89,8 +98,16 @@ instantiateResampleInstance.GrowingCVDesc = function(desc, size, task = NULL) {
     train.inds = thin(train.inds, skip = skip + 1)
     test.inds  = thin(test.inds, skip = skip + 1)
   }
+
   if (length(test.inds) == 0)
     stop("Skip is too large and has removed all resampling instances. Please lower the value of skip.")
+
+  # If the last value if not included, shift everything over by one
+  if (test.inds[[length(test.inds)]][desc$horizon] != size) {
+
+    train.inds = lapply(train.inds, function(x) x + 1)
+    test.inds = lapply(test.inds, function(x) x + 1)
+  }
   desc$iters = length(test.inds)
   makeResampleInstanceInternal(desc, size, train.inds = train.inds, test.inds = test.inds )
 }
