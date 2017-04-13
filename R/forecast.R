@@ -81,8 +81,8 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
     }
     assertDataFrame(newdata)
     t.col = match(td$target, colnames(newdata))
-    if (nrow(newdata) != h)
-      stop("The new data supplied must be the length of your forecast")
+#    if (nrow(newdata) != h)
+#      stop("The new data supplied must be the length of your forecast")
   } else {
     t.col = NA
   }
@@ -104,14 +104,19 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
                   proc.vals$seasonal.lag * proc.vals$frequency,
                   proc.vals$seasonal.difference.lag * proc.vals$frequency))
 
-  # This just cuts the amount of data we need to use
-  data = td$pre.proc$data.original[, td$target, drop = FALSE]
+  data = td$pre.proc$data.original
   if (is.null(truth)) {
     row.dates = as.POSIXct(proc.vals$date.col)
     diff.time = difftime(row.dates[2], row.dates[1], units = "auto")
     start = row.dates[length(row.dates)] + diff.time
     end = start + diff.time * h
-    row.names = seq.POSIXt(start, end - 1, by = diff.time)
+    if (is.null(newdata)) {
+      group.names = unique(data[[proc.vals$grouping]])
+    } else {
+      group.names = unique(newdata[[proc.vals$grouping]])
+    }
+    row.names = rep(seq.POSIXt(start, end - 1, by = diff.time), each = length(group.names))
+    row.names = paste0(rep(group.names, h),".", row.names)
   } else {
     row.names = row.names(truth)
   }
@@ -157,43 +162,40 @@ forecast.WrappedModel = function(object, newdata = NULL, task, h = 10, ...) {
 
 makeForecast = function(.data, .newdata, .proc.vals, .h, .td, .model, ...) {
   forecasts = list()[1:I(.h)]
-  data = .data
-  for (i in seq_len(.h)) {
+  group.data =  unique(.data[,.proc.vals$grouping, with = FALSE])
 
-    .data = rbind(.data, NA)
+  for (i in seq_len(.h)) {
+    .data = rbindlist(l = list(.data[,c(.proc.vals$cols, .proc.vals$target, .proc.vals$grouping), with = FALSE], group.data), fill = TRUE)
+    setkeyv(.data, .proc.vals$grouping)
     # The dates here will be thrown away later
-    times =  as.POSIXct("1992-01-14") + seq_len(nrow(.data))
-    if (i == 1) {
-      print(.data)
-      print(forecasts)
-    }
+    times = .data[, .SD[,as.POSIXct("1992-01-14") + 1:.N], by = c(.proc.vals$grouping)][, c(V1), drop = TRUE]
     .proc.vals$date.col = times
     # get lag structure
     lagdiff.func = function(...) {
       createLagDiffFeatures(obj = .data, ...)
     }
     data.lag = do.call(lagdiff.func, .proc.vals)
-    data.lag = as.data.frame(data.lag)
-    data.step = data.lag[nrow(data.lag), , drop = FALSE]
-    if (!is.null(.newdata))
-      data.step = cbind(data.step, .newdata[i, ])
-
+    data.step = data.table(data.lag)
+    data.step = data.step[complete.cases(data.step),]
+    data.step = data.step[, .SD[.N,], by = c(.proc.vals$grouping)]
+    data.step = data.step[, -c(.td$target), with = FALSE]
+    if (!is.null(.newdata)) {
+      .newdata = data.table(.newdata)
+      data.step = merge(data.step, .newdata[,.SD[i,] , by = c(.proc.vals$grouping)], by = "Ticker")
+    }
     # predict
-    pred = predict(.model, newdata = data.step)
+    pred = predict(.model, newdata = as.data.frame(data.step))
 
     if (pred$predict.type == "response") {
       forecasts[[i]] = pred$data
-      .data[nrow(.data), ] = getPredictionResponse(pred)
     } else if (pred$predict.type == "prob") {
       colnames(pred$data) = stri_replace_all_regex(colnames(pred$data), "prob", "")
       colnames(pred$data) = stri_replace_all_regex(colnames(pred$data), "[.]", "")
-      .data[nrow(.data), ] = getPredictionResponse(pred)
-      pred$data$response = NULL
       forecasts[[i]] = pred$data
     } else if (pred$predict.type == "se") {
       forecasts[[i]] = pred$data
-      .data[nrow(.data), ] = getPredictionResponse(pred)
     }
+    .data[is.na(.proc.vals$target), c(.proc.vals$target) := getPredictionResponse(pred)]
   }
 
   p = do.call(rbind, forecasts)

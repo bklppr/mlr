@@ -46,7 +46,7 @@ globalVariables("dates")
 createLagDiffFeatures = function(obj, target = character(0L), lag = 0L, difference = 0L, difference.lag = 0L,
   cols = NULL, seasonal.lag = 0L, seasonal.difference = 0L,
   seasonal.difference.lag = 0L, frequency = 1L,
-  na.pad = FALSE, return.nonlag = TRUE, grouping = NULL, date.col) {
+  na.pad = FALSE, return.nonlag = FALSE, grouping = NULL, date.col) {
 
   assertInteger(lag, lower = 0L, upper = 1000L)
   assertInteger(difference, lower = 0L, upper = 1000L, len = 1L)
@@ -67,10 +67,9 @@ createLagDiffFeatures = function(obj, target = character(0L), lag = 0L, differen
 createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0L, difference = 0L, difference.lag = 0L,
   cols = NULL, seasonal.lag = 0L, seasonal.difference = 0L,
   seasonal.difference.lag = 0L, frequency = 1L,
-  na.pad = FALSE, return.nonlag = TRUE, grouping = NULL, date.col) {
+  na.pad = FALSE, return.nonlag = FALSE, grouping = NULL, date.col) {
 
-  cols = cols
-  grouping = grouping
+  work.cols = colnames(obj)
   if (missing(date.col)) {
     stop("Dates must be given")
   } else {
@@ -78,16 +77,17 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
     data[, dates := date.col]
     suppressWarnings(setkeyv(data, c(grouping, "dates")))
   }
-  work.cols = colnames(data)
-  work.cols = work.cols[!(work.cols %in% "dates")]
+
   if (!is.null(cols)) {
+    if (!(target %in% cols))
+      cols = c(cols, target)
     assertSubset(cols, work.cols)
     x = data[, c(cols, grouping), with = FALSE]
   } else {
     cols = work.cols
     x = data[, cols, with = FALSE]
   }
-
+  cols = cols[!(cols %in% grouping)]
   lag.diff.full.names = vector(mode = "character")
 
   if (any(lag > 0)) {
@@ -181,7 +181,7 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
   }
 
   max.shift = 1:(max(lag, seasonal.lag * frequency,
-    max(difference) * max(difference.lag),
+    max(difference, 1) * max(difference.lag, 1),
     max(seasonal.difference * frequency) * max(seasonal.difference.lag * frequency)))
 
 
@@ -193,10 +193,9 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
       data = x
     }
   } else {
-    data = cbind(data[, c(setdiff(work.cols, cols), "dates"), with = FALSE], x[, c(lag.diff.full.names), with = FALSE])
+    data = cbind(data[, unique(c(setdiff(work.cols, cols), "dates", target)), with = FALSE], x[, c(lag.diff.full.names), with = FALSE])
   }
-
-  if (na.pad == FALSE) {
+  if (!na.pad) {
     data = data[, .SD[-max.shift, ], by = eval(c(grouping))]
   }
   setkey(data, "dates")
@@ -208,7 +207,7 @@ createLagDiffFeatures.data.frame = function(obj, target = character(0L), lag = 0
 createLagDiffFeatures.Task = function(obj, target = character(0L), lag = 0L, difference = 0L, difference.lag = 0L,
   cols = NULL, seasonal.lag = 0L, seasonal.difference = 0L,
   seasonal.difference.lag = 0L, frequency = 1L,
-  na.pad = FALSE, return.nonlag = TRUE, grouping = NULL, date.col) {
+  na.pad = FALSE, return.nonlag = FALSE, grouping = NULL, date.col) {
 
   target = getTaskTargetNames(obj)
   data = getTaskData(obj)
@@ -241,7 +240,8 @@ createLagDiffFeatures.Task = function(obj, target = character(0L), lag = 0L, dif
   max.shift = max(lag, seasonal.lag * frequency,
     max(difference) * max(difference.lag),
     max(seasonal.difference * frequency) * max(seasonal.difference.lag * frequency))
-  data.original = data.original[(nrow(data) - max.shift):(nrow(data)), , drop = FALSE]
+  data.original = data.table(data.original)
+  data.original = data.original[,.SD[ (.N - max.shift):.N,], by = eval(c(grouping))]
 
   obj$task.desc$pre.proc$data.original = data.original
   obj$task.desc$pre.proc$par.vals = list(lag = lag, difference = difference,
