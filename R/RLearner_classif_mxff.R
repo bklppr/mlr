@@ -21,6 +21,7 @@ makeRLearner.classif.mxff = function() {
         values = c("rmse", "softmax", "logistic")),
       # other hyperparameters
       makeNumericLearnerParam(id = "validation.set", default = 0, lower = 0, upper = 1),
+      makeIntegerLearnerParam(id = "early.stop.badsteps", default = NULL, lower = 1),
       makeNumericLearnerParam(id = "dropout", lower = 0, upper = 1 - 1e-7),
       makeUntypedLearnerParam(id = "ctx", default = mx.ctx.default(), tunable = FALSE),
       makeIntegerLearnerParam(id = "begin.round", default = 1L),
@@ -74,7 +75,13 @@ makeRLearner.classif.mxff = function() {
     in the `mxnet` package. `validation.set` gives the percentage of training data that will not
     be used for training but as validation data similar to the data provided in `eval.data`. The
     validation set will be randomly chosen and the default is `0`. If `eval.data` is specified,
-    `validation.set` will be ignored."
+    `validation.set` will be ignored. If `early.stop.badsteps` is specified and
+    `epoch.end.callback` is not specified, early stopping will be used using 
+    `mx.callback.early.stop` as `epoch.end.callback` with the learner's `eval.metric`. In this case,
+    `early.stop.badsteps` gives the number of `bad.steps` in `mx.callback.early.stop`. Please note
+    that when using `early.stop.badsteps`, `eval.metric` and either `eval.data` or `validation.set`
+    should be specified.
+    "
   )
 }
 
@@ -82,12 +89,14 @@ makeRLearner.classif.mxff = function() {
 trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
   layers = 1L, nodes1 = 1L, nodes2 = NULL, nodes3 = NULL, nodes.out = NULL,
   act1 = "tanh", act2 = NULL, act3 = NULL, act_out = "softmax", dropout = NULL, symbol = NULL,
-  validation.set = 0, eval.data = NULL, ...) {
+  validation.set = 0, eval.data = NULL, early.stop.badsteps = NULL, epoch.end.callback = NULL,
+  ...) {
   # transform data in correct format
   d = getTaskData(.task, subset = .subset, target.extra = TRUE)
   y = as.numeric(d$target) - 1
   X = data.matrix(d$data)
 
+  # construct validation data
   if (is.null(eval.data) & (validation.set > 0)) {
     eval.data = list()
     n = length(y)
@@ -96,6 +105,11 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
     y = y[-val.ind]
     eval.data$data = X[val.ind,]
     X = X[-val.ind,]
+  }
+
+  # early stopping
+  if (is.null(epoch.end.callback) & is.numeric(early.stop.badsteps)) {
+    epoch.end.callback = mx.callback.early.stop(bad.steps = early.stop.badsteps)
   }
 
   # construct vectors with #nodes and activations
@@ -131,7 +145,8 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
   }
 
   # create model
-  model = mx.model.FeedForward.create(out, X = X, y = y, eval.data = eval.data, ...)
+  model = mx.model.FeedForward.create(out, X = X, y = y, eval.data = eval.data,
+    epoch.end.callback = epoch.end.callback, ...)
   return(model)
 }
 
