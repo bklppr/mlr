@@ -22,6 +22,7 @@ makeRLearner.classif.mxff = function() {
       # other hyperparameters
       makeNumericLearnerParam(id = "validation.set", default = 0, lower = 0, upper = 1),
       makeIntegerLearnerParam(id = "early.stop.badsteps", default = NULL, lower = 1),
+      makeLogicalLearnerParam(id = "early.stop.maximize", default = TRUE),
       makeNumericLearnerParam(id = "dropout", lower = 0, upper = 1 - 1e-7),
       makeUntypedLearnerParam(id = "ctx", default = mx.ctx.default(), tunable = FALSE),
       makeIntegerLearnerParam(id = "begin.round", default = 1L),
@@ -78,9 +79,10 @@ makeRLearner.classif.mxff = function() {
     `validation.set` will be ignored. If `early.stop.badsteps` is specified and
     `epoch.end.callback` is not specified, early stopping will be used using 
     `mx.callback.early.stop` as `epoch.end.callback` with the learner's `eval.metric`. In this case,
-    `early.stop.badsteps` gives the number of `bad.steps` in `mx.callback.early.stop`. Please note
-    that when using `early.stop.badsteps`, `eval.metric` and either `eval.data` or `validation.set`
-    should be specified.
+    `early.stop.badsteps` gives the number of `bad.steps` in `mx.callback.early.stop` and 
+    `early.stop.maximize` gives the `maximize` parameter in `mx.callback.early.stop`.
+    Please note that when using `early.stop.badsteps`, `eval.metric` and either `eval.data` or 
+    `validation.set` should be specified.
     "
   )
 }
@@ -90,7 +92,7 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
   layers = 1L, nodes1 = 1L, nodes2 = NULL, nodes3 = NULL, nodes.out = NULL,
   act1 = "tanh", act2 = NULL, act3 = NULL, act_out = "softmax", dropout = NULL, symbol = NULL,
   validation.set = 0, eval.data = NULL, early.stop.badsteps = NULL, epoch.end.callback = NULL,
-  ...) {
+  early.stop.maximize = TRUE, ...) {
   # transform data in correct format
   d = getTaskData(.task, subset = .subset, target.extra = TRUE)
   y = as.numeric(d$target) - 1
@@ -109,7 +111,8 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
 
   # early stopping
   if (is.null(epoch.end.callback) & is.numeric(early.stop.badsteps)) {
-    epoch.end.callback = mx.callback.early.stop(bad.steps = early.stop.badsteps)
+    epoch.end.callback = mx.callback.early.stop(bad.steps = early.stop.badsteps,
+      maximize = early.stop.maximize)
   }
 
   # construct vectors with #nodes and activations
