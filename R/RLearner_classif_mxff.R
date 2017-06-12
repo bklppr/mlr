@@ -192,12 +192,12 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
       c(conv.data.shape, nrow(X)),
       conv.data.shape)
     X = array(aperm(X), dim = dims)
+    # adapt array.layout for mx.model.FeedForward.create
     array.layout = "colmajor"
-    
+    # adapt validation data if necessary
     if (!is.null(validation.set)) {
       eval.data$data = array(aperm(eval.data$data), dim = dims)
     }
-    
   }
   
   # early stopping
@@ -237,8 +237,8 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
         sym = do.call(mx.symbol.Pooling, pool.inputs[!sapply(pool.inputs, is.null)])
       } else {
         # construct fully connected layer
-        if(i > 1) {
-          if(convs[i-1]) {
+        if (i > 1) {
+          if (convs[i - 1]) {
             sym = mx.symbol.flatten(sym)
           }
         }
@@ -273,13 +273,24 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
 
 #' @export
 predictLearner.classif.mxff = function(.learner, .model, .newdata, ...) {
-  x = data.matrix(.newdata)
-  p = predict(.model$learner.model, X = x, array.layout = .model$learner$par.vals$array.layout)
+  X = data.matrix(.newdata)
+  array.layout = .model$learner$par.vals$array.layout
+  if (.learner$par.vals$conv.layer1) {
+    l = length(.learner$par.vals$conv.data.shape)
+    dims = switch(l,
+      c(.learner$par.vals$conv.data.shape, 1, 1, nrow(X)),
+      c(.learner$par.vals$conv.data.shape, 1, nrow(X)),
+      c(.learner$par.vals$conv.data.shape, nrow(X)),
+      .learner$par.vals$conv.data.shape)
+    X = array(aperm(X), dim = dims)
+    array.layout = "colmajor"
+  }
+  p = predict(.model$learner.model, X = X, array.layout = array.layout)
   if (.learner$predict.type == "response") {
     p = apply(p, 2, function(i) {
       w = which.max(i)
       return(ifelse(length(w > 0), w, NaN))
-      })
+    })
     p = factor(p, exclude = NaN)
     levels(p) = .model$task.desc$class.levels
     return(p)
@@ -290,3 +301,4 @@ predictLearner.classif.mxff = function(.learner, .model, .newdata, ...) {
     return(p)
   }
 }
+
