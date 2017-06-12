@@ -138,7 +138,22 @@ makeRLearner.classif.mxff = function() {
     ignoring other architectural specifications. Default of `initializer` is set to NULL, which
     results in the default mxnet initializer being called when training a model. Number of output
     nodes is detected automatically. The upper bound for dropout is set to `1 - 1e-7` as in `mx.mlp`
-    in the `mxnet` package. `validation.set` gives the indices of training data that will not
+    in the `mxnet` package. 
+    If `conv.layer1` is `FALSE`, the first layer is a `FullyConnected` layer and `num.layer1` gives
+    the number of neurons. If `conv.layer1` is `TRUE`, then `num.layer1` gives the number of
+    filters. In this case, `act1` is applied as an `Activation` layer afterwards (as is the case
+    with a `FullyConnected` layer).
+    This is the same for `conv.layer2` and `conv.layer3`. A `Convolution`
+    layer cannot follow a `FullyConnected` layer. To stick with the example of the first layer,
+    `conv.kernel1`, `conv.stride1`, `conv.dilate1` and `conv.pad1` correspond to the parameters
+    of `mx.symbol.Convolution`. When a `Convolution` layer is constructed, a `Pooling` layer is
+    constructed with it automatically. Again sticking to the example of the first layer,
+    `pool.kernel1`, `pool.stride1`, `pool.pad1` and `pool.type1` correspond to the parameters in
+    `mx.symbol.Pooling`.
+    When convolution is used, `conv.data.shape` needs to be specified, which is a vector giving the
+    dimensionality of the data (e.g. for MNIST `c(28, 28)`). Furthermore, `array.layout` is set to
+    `colmajor` if convolution is used, to enable compatability with `mxnet`.
+    `validation.set` gives the indices of training data that will not
     be used for training but as validation data similar to the data provided in `eval.data`.
     If `eval.data` is specified, `validation.set` will be ignored. 
     If `early.stop.badsteps` is specified and `epoch.end.callback` is not specified,
@@ -245,13 +260,12 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
         sym = mx.symbol.FullyConnected(sym, num_hidden = nums[i])
         sym = mx.symbol.Activation(sym, act_type = act[i])
       }
+      # add dropout if specified
+      if (!is.null(dropout)) {
+        sym = mx.symbol.Dropout(sym, p = dropout)
+      }
     }
-    
-    # add dropout if specified
-    if (!is.null(dropout)) {
-      sym = mx.symbol.Dropout(sym, p = dropout)
-    }
-    
+
     # construct output layer
     nodes.out = switch(act.out,
       softmax = nlevels(d$target),
