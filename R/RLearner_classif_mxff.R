@@ -6,9 +6,9 @@ makeRLearner.classif.mxff = function() {
     par.set = makeParamSet(
       # architectural hyperparameters
       makeIntegerLearnerParam(id = "layers", lower = 1L, upper = 3L, default = 1L),
-      makeIntegerLearnerParam(id = "nodes1", lower = 1L, default = 1L),
-      makeIntegerLearnerParam(id = "nodes2", lower = 1L, requires = quote(layers > 1)),
-      makeIntegerLearnerParam(id = "nodes3", lower = 1L, requires = quote(layers > 2)),
+      makeIntegerLearnerParam(id = "num.layer1", lower = 1L, default = 1L),
+      makeIntegerLearnerParam(id = "num.layer2", lower = 1L, requires = quote(layers > 1)),
+      makeIntegerLearnerParam(id = "num.layer3", lower = 1L, requires = quote(layers > 2)),
       makeDiscreteLearnerParam(id = "act1", default = "tanh",
         values = c("tanh", "relu", "sigmoid", "softrelu")),
       makeDiscreteLearnerParam(id = "act2", default = "tanh",
@@ -21,7 +21,7 @@ makeRLearner.classif.mxff = function() {
         values = c("rmse", "softmax", "logistic")),
       # other hyperparameters
       makeNumericLearnerParam(id = "validation.set", default = 0, lower = 0, upper = 1),
-      makeIntegerLearnerParam(id = "early.stop.badsteps", default = NULL, lower = 1),
+      makeIntegerLearnerParam(id = "early.stop.badsteps", lower = 1),
       makeLogicalLearnerParam(id = "early.stop.maximize", default = TRUE),
       makeNumericLearnerParam(id = "dropout", lower = 0, upper = 1 - 1e-7),
       makeUntypedLearnerParam(id = "ctx", default = mx.ctx.default(), tunable = FALSE),
