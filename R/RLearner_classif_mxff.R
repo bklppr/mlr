@@ -311,7 +311,9 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
 predictLearner.classif.mxff = function(.learner, .model, .newdata, ...) {
   X = data.matrix(.newdata)
   array.layout = .model$learner$par.vals$array.layout
-  if (.learner$par.vals$conv.layer1) {
+  conv.layer1 = ifelse(is.null(.learner$par.vals$conv.layer1),
+    .learner$par.set$pars$conv.layer1$default, .learner$par.vals$conv.layer1)
+  if (conv.layer1) {
     l = length(.learner$par.vals$conv.data.shape)
     dims = switch(l,
       c(.learner$par.vals$conv.data.shape, 1, 1, nrow(X)),
