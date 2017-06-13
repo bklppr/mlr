@@ -2,6 +2,7 @@ context("classif_mxff")
 
 test_that("classif_mxff", {
   requirePackagesOrSkip("mxnet", default.method = "load")
+  # tests for FeedForward networks with only FullyConnected layers using mx.mlp
   parset.list.mxnet = list(
     list(hidden_node = c(10, 6), activation = c("sigmoid", "relu"),
       learning.rate = 0.2),
@@ -16,7 +17,7 @@ test_that("classif_mxff", {
   )
 
   # mxnet has its own internal random number generators so setting seeds in R does not work
-  # therefore we need to change probabilities the testProbParsets function to account for some
+  # therefore we need to change the testProbParsets function to account for some
   # tolerated difference in the probablities
   testProbParsetsWithTol = function(t.name, df, target, train.inds, old.probs.list, parset.list,
     tol = 1e-04) {
