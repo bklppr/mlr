@@ -88,7 +88,7 @@ makeRLearner.classif.mxff = function() {
       makeIntegerVectorLearnerParam(id = "validation.set"),
       makeIntegerLearnerParam(id = "early.stop.badsteps", lower = 1),
       makeLogicalLearnerParam(id = "early.stop.maximize", default = TRUE),
-      makeNumericLearnerParam(id = "dropout", lower = 0, upper = 1 - 1e-7),
+      makeNumericVectorLearnerParam(id = "dropout", lower = 0, upper = 1 - 1e-7),
       makeUntypedLearnerParam(id = "ctx", default = mx.ctx.default(), tunable = FALSE),
       makeIntegerLearnerParam(id = "begin.round", default = 1L),
       makeIntegerLearnerParam(id = "num.round", default = 10L),
@@ -138,7 +138,11 @@ makeRLearner.classif.mxff = function() {
     ignoring other architectural specifications. Default of `initializer` is set to NULL, which
     results in the default mxnet initializer being called when training a model. Number of output
     nodes is detected automatically. The upper bound for dropout is set to `1 - 1e-7` as in `mx.mlp`
-    in the `mxnet` package. 
+    in the `mxnet` package. Dropout should be a numeric vector of length `1`, `2`, or `layers + 1`.
+    If `length(dropout)` is `1`, the same dropout rate will be applied to the inputs and all the
+    hidden layers. If `length(dropout)` is `2`, the first rate will be applied to the inputs, the
+    second to all the hidden layers. If `length(dropout)` is `layers + 1` then the input and every
+    hidden layers will be assigned an individual dropout rate.
     If `conv.layer1` is `FALSE`, the first layer is a `FullyConnected` layer and `num.layer1` gives
     the number of neurons. If `conv.layer1` is `TRUE`, then `num.layer1` gives the number of
     filters. In this case, `act1` is applied as an `Activation` layer afterwards (as is the case
@@ -238,7 +242,21 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
     pool.strides = list(pool.stride1, pool.stride2, pool.stride3)[1:layers]
     pool.pads = list(pool.pad1, pool.pad2, pool.pad3)[1:layers]
     pool.types = list(pool.type1, pool.type2, pool.type3)[1:layers]
-    
+
+    # add dropout if specified
+    if (!is.null(dropout)) {
+      # construct a vector of dropout rates
+      if (length(dropout) == 1) {
+        dropout = rep(dropout, times = layers + 1)
+      } else if (length(dropout) == 2) {
+        dropout = c(dropout[1], rep(dropout[2], times = layers))
+      } else if (length(dropout) != (layers + 1)) {
+        stop("Length of dropout should be 1, 2 or number of layers + 1!")
+      }
+
+      sym = mx.symbol.Dropout(sym, p = dropout[1])
+    }
+
     # construct hidden layers using symbols
     for (i in seq_len(layers)) {
       if (convs[i]) {
@@ -262,7 +280,7 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
       }
       # add dropout if specified
       if (!is.null(dropout)) {
-        sym = mx.symbol.Dropout(sym, p = dropout)
+        sym = mx.symbol.Dropout(sym, p = dropout[i + 1])
       }
     }
 
