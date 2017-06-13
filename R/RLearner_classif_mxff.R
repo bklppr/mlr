@@ -156,7 +156,11 @@ makeRLearner.classif.mxff = function() {
     `mx.symbol.Pooling`.
     When convolution is used, `conv.data.shape` needs to be specified, which is a vector giving the
     dimensionality of the data (e.g. for MNIST `c(28, 28)`). Furthermore, `array.layout` is set to
-    `colmajor` if convolution is used, to enable compatability with `mxnet`.
+    `colmajor` if convolution is used, to enable compatability with `mxnet`. When using convolution,
+    `mx.model.FeedForward.create` expects the array containing the data to have `4` dimensions.
+    To allow for flexibility, `conv.data.shape` can have length `1` to `4`, the dimensions are
+    taken in ascending order. For most cases, giving an `conv.data.shape` of length `2` will be
+    sufficient.
     `validation.set` gives the indices of training data that will not
     be used for training but as validation data similar to the data provided in `eval.data`.
     If `eval.data` is specified, `validation.set` will be ignored. 
