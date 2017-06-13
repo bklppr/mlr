@@ -197,7 +197,7 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
   # construct validation data
   if (is.null(eval.data) & !is.null(validation.set)) {
     eval.data = list()
-    eval.data$label = y[validation.set,]
+    eval.data$label = y[validation.set]
     y = y[-validation.set]
     eval.data$data = X[validation.set,]
     X = X[-validation.set,]
