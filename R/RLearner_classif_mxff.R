@@ -89,7 +89,7 @@ makeRLearner.classif.mxff = function() {
       makeIntegerLearnerParam(id = "early.stop.badsteps", lower = 1),
       makeLogicalLearnerParam(id = "early.stop.maximize", default = TRUE),
       makeNumericVectorLearnerParam(id = "dropout", lower = 0, upper = 1 - 1e-7),
-      makeUntypedLearnerParam(id = "ctx", default = mx.ctx.default(), tunable = FALSE),
+      makeUntypedLearnerParam(id = "ctx", default = mxnet::mx.ctx.default(), tunable = FALSE),
       makeIntegerLearnerParam(id = "begin.round", default = 1L),
       makeIntegerLearnerParam(id = "num.round", default = 10L),
       makeDiscreteLearnerParam(id = "optimizer", default = "sgd",
@@ -163,11 +163,11 @@ makeRLearner.classif.mxff = function() {
     sufficient.
     `validation.set` gives the indices of training data that will not
     be used for training but as validation data similar to the data provided in `eval.data`.
-    If `eval.data` is specified, `validation.set` will be ignored. 
+    If `eval.data` is specified, `validation.set` will be ignored.
     If `early.stop.badsteps` is specified and `epoch.end.callback` is not specified,
     early stopping will be used using `mx.callback.early.stop` as `epoch.end.callback` with the
     learner's `eval.metric`. In this case, `early.stop.badsteps` gives the number of `bad.steps` in
-    `mx.callback.early.stop` and `early.stop.maximize` gives the `maximize` parameter in 
+    `mx.callback.early.stop` and `early.stop.maximize` gives the `maximize` parameter in
     `mx.callback.early.stop`. Please note that when using `early.stop.badsteps`, `eval.metric` and
     either `eval.data` or `validation.set` should be specified.
     "
@@ -193,7 +193,7 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
   d = getTaskData(.task, subset = .subset, target.extra = TRUE)
   y = as.numeric(d$target) - 1
   X = data.matrix(d$data)
-  
+
   # construct validation data
   if (is.null(eval.data) & !is.null(validation.set)) {
     eval.data = list()
@@ -202,7 +202,7 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
     eval.data$data = X[validation.set,]
     X = X[-validation.set,]
   }
-  
+
   # if convolution is used, prepare the data dimensionality
   if (conv.layer1) {
     l = length(conv.data.shape)
@@ -222,18 +222,18 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
       eval.data$data = array(aperm(eval.data$data), dim = dims)
     }
   }
-  
+
   # early stopping
   if (is.null(epoch.end.callback) & is.numeric(early.stop.badsteps)) {
-    epoch.end.callback = mx.callback.early.stop(bad.steps = early.stop.badsteps,
+    epoch.end.callback = mxnet::mx.callback.early.stop(bad.steps = early.stop.badsteps,
       maximize = early.stop.maximize)
   }
-  
+
   # construct vectors with #nodes and activations
   if (!is.null(symbol)) {
     out = symbol
   } else {
-    sym = mx.symbol.Variable("data")
+    sym = mxnet::mx.symbol.Variable("data")
     act = c(act1, act2, act3, act4)[1:layers]
     nums = c(num.layer1, num.layer2, num.layer3, num.layer4)[1:layers]
     convs = c(conv.layer1, conv.layer2, conv.layer3, FALSE)[1:layers]
@@ -258,7 +258,7 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
         stop("Length of dropout should be 1, 2 or number of layers + 1!")
       }
 
-      sym = mx.symbol.Dropout(sym, p = dropout[1])
+      sym = mxnet::mx.symbol.Dropout(sym, p = dropout[1])
     }
 
     # construct hidden layers using symbols
@@ -267,24 +267,24 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
         # construct convolutional layer with pooling
         conv.inputs = list(data = sym, kernel = conv.kernels[[i]], stride = conv.strides[[i]],
           dilate = conv.dilates[[i]], pad = conv.pads[[i]], num_filter = nums[i])
-        sym = do.call(mx.symbol.Convolution, conv.inputs[!sapply(conv.inputs, is.null)])
-        sym = mx.symbol.Activation(sym, act_type = act[i])
+        sym = do.call(mxnet::mx.symbol.Convolution, conv.inputs[!sapply(conv.inputs, is.null)])
+        sym = mxnet::mx.symbol.Activation(sym, act_type = act[i])
         pool.inputs = list(data = sym, kernel = pool.kernels[[i]], pool.type = pool.types[[i]],
           stride = pool.strides[[i]], pad = pool.pads[[i]])
-        sym = do.call(mx.symbol.Pooling, pool.inputs[!sapply(pool.inputs, is.null)])
+        sym = do.call(mxnet::mx.symbol.Pooling, pool.inputs[!sapply(pool.inputs, is.null)])
       } else {
         # construct fully connected layer
         if (i > 1) {
           if (convs[i - 1]) {
-            sym = mx.symbol.flatten(sym)
+            sym = mxnet::mx.symbol.flatten(sym)
           }
         }
-        sym = mx.symbol.FullyConnected(sym, num_hidden = nums[i])
-        sym = mx.symbol.Activation(sym, act_type = act[i])
+        sym = mxnet::mx.symbol.FullyConnected(sym, num_hidden = nums[i])
+        sym = mxnet::mx.symbol.Activation(sym, act_type = act[i])
       }
       # add dropout if specified
       if (!is.null(dropout)) {
-        sym = mx.symbol.Dropout(sym, p = dropout[i + 1])
+        sym = mxnet::mx.symbol.Dropout(sym, p = dropout[i + 1])
       }
     }
 
@@ -293,16 +293,16 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
       softmax = nlevels(d$target),
       logistic = 1,
       stop("Output activation not supported yet."))
-    sym = mx.symbol.FullyConnected(sym, num_hidden = nodes.out)
+    sym = mxnet::mx.symbol.FullyConnected(sym, num_hidden = nodes.out)
     out = switch(act.out,
-      # rmse = mx.symbol.LinearRegressionOutput(sym),
-      softmax = mx.symbol.SoftmaxOutput(sym),
-      logistic = mx.symbol.LogisticRegressionOutput(sym),
+      # rmse = mxnet::mx.symbol.LinearRegressionOutput(sym),
+      softmax = mxnet::mx.symbol.SoftmaxOutput(sym),
+      logistic = mxnet::mx.symbol.LogisticRegressionOutput(sym),
       stop("Output activation not supported yet."))
   }
-  
+
   # create model
-  model = mx.model.FeedForward.create(out, X = X, y = y, eval.data = eval.data,
+  model = mxnet::mx.model.FeedForward.create(out, X = X, y = y, eval.data = eval.data,
     epoch.end.callback = epoch.end.callback, array.layout = array.layout, ...)
   return(model)
 }
