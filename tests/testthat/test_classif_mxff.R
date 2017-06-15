@@ -22,7 +22,7 @@ test_that("classif_mxff", {
       conv.kernel11 = 1, conv.kernel12 = 1, pool.kernel11 = 1, pool.kernel12 = 1
     )
   )
-  
+
   # mxnet has its own internal random number generators so setting seeds in R does not work
   # therefore we need to change the testProbParsets function to account for some
   # tolerated difference in the probablities
@@ -137,7 +137,7 @@ test_that("classif_mxff", {
   set.seed(getOption("mlr.debug.seed"))
   testProbParsetsWithTol("classif.mxff", multiclass.df, multiclass.target, multiclass.train.inds,
     old.probs.list, parset.list.mlr)
-  
+
   # Convoution test
   conv.probs.list = list()
   set.seed(getOption("mlr.debug.seed"))
