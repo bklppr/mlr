@@ -343,6 +343,9 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
     }
 
     # construct output layer
+    if (convs[layers]) {
+      sym = mxnet::mx.symbol.flatten(sym)
+    }
     nodes.out = switch(act.out,
       softmax = nlevels(d$target),
       logistic = 1,

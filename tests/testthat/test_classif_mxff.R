@@ -16,6 +16,13 @@ test_that("classif_mxff", {
       act2 = "relu", learning.rate = 0.2, dropout = 0.5)
   )
 
+  # test for Convolution
+  parset.list.mlr.conv = list(
+    list(layers = 1, conv.layer1 = TRUE, num.layer1 = 1, conv.data.shape = c(2,2),
+      conv.kernel11 = 1, conv.kernel12 = 1, pool.kernel11 = 1, pool.kernel12 = 1
+    )
+  )
+  
   # mxnet has its own internal random number generators so setting seeds in R does not work
   # therefore we need to change the testProbParsets function to account for some
   # tolerated difference in the probablities
@@ -130,4 +137,26 @@ test_that("classif_mxff", {
   set.seed(getOption("mlr.debug.seed"))
   testProbParsetsWithTol("classif.mxff", multiclass.df, multiclass.target, multiclass.train.inds,
     old.probs.list, parset.list.mlr)
+  
+  # Convoution test
+  conv.probs.list = list()
+  set.seed(getOption("mlr.debug.seed"))
+  x = data.matrix(multiclass.train[, -ncol(multiclass.train)])
+  y = as.numeric(multiclass.train[, ncol(multiclass.train)]) - 1
+  x = array(aperm(x), dim = c(2, 2, 1, nrow(x)))
+  sym = mxnet::mx.symbol.Variable("data")
+  sym = mxnet::mx.symbol.Convolution(sym, kernel = c(1, 1))
+  sym = mxnet::mx.symbol.Pooling(sym, kernel = c(1, 1), type = "max")
+  sym = mxnet::mx.symbol.flatten(sym)
+  levs = levels(multiclass.df[[multiclass.class.col]])
+  sym = mxnet::mx.symbol.FullyConnected(sym, num_hidden = length(levs))
+  out = mxnet::mx.symbol.SoftmaxOutput(sym)
+  m = mxnet::mx.model.FeedForward.create(out, X = x, y = y, array.layout = "colmajor")
+  x.test = data.matrix(multiclass.test[, -ncol(multiclass.test)])
+  x.test = array(aperm(x.test), dim = c(2, 2, 1, nrow(x.test)))
+  conv.probs.list[[1]] = predict(m, x.test)
+  
+  set.seed(getOption("mlr.debug.seed"))
+  testProbParsetsWithTol("classif.mxff", multiclass.df, multiclass.target, multiclass.train.inds,
+    conv.probs.list, parset.list.mlr.conv)
 })
