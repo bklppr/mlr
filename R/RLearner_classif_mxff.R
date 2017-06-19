@@ -197,6 +197,9 @@ makeRLearner.classif.mxff = function() {
     constructed with it automatically. Again sticking to the example of the first layer,
     `c(pool.kernel11, pool.kernel12)`, `c(pool.stride11, pool.stride12)`, `c(pool.pad11, pool.pad12)`
     and `c(pool.type11, pool.type12)` correspond to the parameters in `mx.symbol.Pooling`.
+    If only the first parameter of a pair is defined, the second parameter is set to the same value,
+    e.g. if `conv.kernel11` is defined and `conv.kernel12` is undefined, `conv.kernel12` is set to
+    the value of `conv.kernel11`.
     When convolution is used, `conv.data.shape` needs to be specified, which is a vector giving the
     dimensionality of the data (e.g. for MNIST `c(28, 28)`). Furthermore, `array.layout` is set to
     `colmajor` if convolution is used, to enable compatability with `mxnet`. When using convolution,
@@ -284,21 +287,29 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
     act = c(act1, act2, act3, act4)[1:layers]
     nums = c(num.layer1, num.layer2, num.layer3, num.layer4)[1:layers]
     convs = c(conv.layer1, conv.layer2, conv.layer3, FALSE)[1:layers]
-    # if layers equals 4 a NULL is appended to the lists automatically
-    conv.kernels = list(c(conv.kernel11, conv.kernel12), c(conv.kernel21, conv.kernel22),
-      c(conv.kernel31, conv.kernel32))[1:layers]
-    conv.strides = list(c(conv.stride11, conv.stride12), c(conv.stride21, conv.stride22),
-      c(conv.stride31, conv.stride32))[1:layers]
-    conv.dilates = list(c(conv.dilate11, conv.dilate12), c(conv.dilate21, conv.dilate22),
-      c(conv.dilate31, conv.dilate32))[1:layers]
-    conv.pads = list(c(conv.pad11, conv.pad12), c(conv.pad21, conv.pad22),
-      c(conv.pad31, conv.pad32))[1:layers]
-    pool.kernels = list(c(pool.kernel11, pool.kernel12), c(pool.kernel21, pool.kernel22),
-      c(pool.kernel31, pool.kernel32))[1:layers]
-    pool.strides = list(c(pool.stride11, pool.stride12), c(pool.stride21, pool.stride22),
-      c(pool.stride31, pool.stride32))[1:layers]
-    pool.pads = list(c(pool.pad11, pool.pad12), c(pool.pad21, pool.pad22),
-      c(pool.pad31, pool.pad32))[1:layers]
+    # define function to set e.g. conv.kernel12 = conv.kernel11 if conv.kernel12 == NULL
+    fillVec = function(vec) {
+      if (length(vec) == 1) {
+        return(rep(vec, 2))
+      } else {
+        return(vec)
+      }
+    }
+    # if layers is bigger than 3, NULL values are appended to the lists automatically
+    conv.kernels = lapply(list(c(conv.kernel11, conv.kernel12), c(conv.kernel21, conv.kernel22),
+      c(conv.kernel31, conv.kernel32))[1:layers], fillVec)
+    conv.strides = lapply(list(c(conv.stride11, conv.stride12), c(conv.stride21, conv.stride22),
+      c(conv.stride31, conv.stride32))[1:layers], fillVec)
+    conv.dilates = lapply(list(c(conv.dilate11, conv.dilate12), c(conv.dilate21, conv.dilate22),
+      c(conv.dilate31, conv.dilate32))[1:layers], fillVec)
+    conv.pads = lapply(list(c(conv.pad11, conv.pad12), c(conv.pad21, conv.pad22),
+      c(conv.pad31, conv.pad32))[1:layers], fillVec)
+    pool.kernels = lapply(list(c(pool.kernel11, pool.kernel12), c(pool.kernel21, pool.kernel22),
+      c(pool.kernel31, pool.kernel32))[1:layers], fillVec)
+    pool.strides = lapply(list(c(pool.stride11, pool.stride12), c(pool.stride21, pool.stride22),
+      c(pool.stride31, pool.stride32))[1:layers], fillVec)
+    pool.pads = lapply(list(c(pool.pad11, pool.pad12), c(pool.pad21, pool.pad22),
+      c(pool.pad31, pool.pad32))[1:layers], fillVec)
     pool.types = list(pool.type1, pool.type2, pool.type3)[1:layers]
 
     # add dropout if specified
