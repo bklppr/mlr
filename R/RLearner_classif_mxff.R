@@ -127,7 +127,7 @@ makeRLearner.classif.mxff = function() {
         values = c("max", "avg", "sum"),
         requires = quote(conv.layer3 == TRUE)),
       # other hyperparameters
-      makeIntegerVectorLearnerParam(id = "validation.set"),
+      makeNumericLearnerParam(id = "validation.set"),
       makeIntegerLearnerParam(id = "early.stop.badsteps", lower = 1),
       makeLogicalLearnerParam(id = "early.stop.maximize", default = TRUE),
       makeNumericVectorLearnerParam(id = "dropout", lower = 0, upper = 1 - 1e-7),
@@ -207,9 +207,13 @@ makeRLearner.classif.mxff = function() {
     To allow for flexibility, `conv.data.shape` can have length `1` to `4`, the dimensions are
     taken in ascending order. For common cases, giving an `conv.data.shape` of length `2` is
     sufficient.
-    `validation.set` gives the indices of training data that will not
+    `validation.set` gives the ratio of training data that will not
     be used for training but as validation data similar to the data provided in `eval.data`.
-    If `eval.data` is specified, `validation.set` will be ignored.
+    If `eval.data` is specified, `validation.set` will be ignored. Note that `eval.data` is passed
+    to `mx.model.FeedForward.create` unchanged to provide unconstrained usability of the underlying
+    learner. In particular, this implies that `array.layout` is not adapted when using convolution,
+    so `eval.data` needs to be provided in the right format.
+    If `validation.set` is specified, it is sampled randomly using `R`'s `sample`.
     If `early.stop.badsteps` is specified and `epoch.end.callback` is not specified,
     early stopping will be used using `mx.callback.early.stop` as `epoch.end.callback` with the
     learner's `eval.metric`. In this case, `early.stop.badsteps` gives the number of `bad.steps` in
@@ -245,30 +249,37 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
   # transform data in correct format
   d = getTaskData(.task, subset = .subset, target.extra = TRUE)
   y = as.numeric(d$target) - 1
-  X = data.matrix(d$data)
+  x = data.matrix(d$data)
 
   # construct validation data
   if (is.null(eval.data) & !is.null(validation.set)) {
     eval.data = list()
-    eval.data$label = y[validation.set]
-    y = y[-validation.set]
-    eval.data$data = X[validation.set,]
-    X = X[-validation.set,]
+    n = dim(x)[1]
+    val.ind = sample(n, floor(n * validation.set))
+    eval.data$label = y[val.ind]
+    y = y[-val.ind]
+    eval.data$data = x[val.ind,]
+    x = x[-val.ind,]
   }
 
   # if convolution is used, prepare the data dimensionality
   if (conv.layer1) {
     l = length(.learner$par.vals$conv.data.shape)
     dims = switch(l,
-      c(.learner$par.vals$conv.data.shape, 1, 1, nrow(X)),
-      c(.learner$par.vals$conv.data.shape, 1, nrow(X)),
-      c(.learner$par.vals$conv.data.shape, nrow(X)),
+      c(.learner$par.vals$conv.data.shape, 1, 1, nrow(x)),
+      c(.learner$par.vals$conv.data.shape, 1, nrow(x)),
+      c(.learner$par.vals$conv.data.shape, nrow(x)),
       .learner$par.vals$conv.data.shape)
-    X = array(aperm(X), dim = dims)
+    x = array(aperm(x), dim = dims)
     # adapt array.layout for mx.model.FeedForward.create
     array.layout = "colmajor"
     # adapt validation data if necessary
     if (!is.null(validation.set)) {
+      dims = switch(l,
+        c(.learner$par.vals$conv.data.shape, 1, 1, nrow(eval.data$data)),
+        c(.learner$par.vals$conv.data.shape, 1, nrow(eval.data$data)),
+        c(.learner$par.vals$conv.data.shape, nrow(eval.data$data)),
+        .learner$par.vals$conv.data.shape)
       eval.data$data = array(aperm(eval.data$data), dim = dims)
     }
   }
@@ -370,28 +381,28 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
   }
 
   # create model
-  model = mxnet::mx.model.FeedForward.create(out, X = X, y = y, eval.data = eval.data,
+  model = mxnet::mx.model.FeedForward.create(out, X = x, y = y, eval.data = eval.data,
     epoch.end.callback = epoch.end.callback, array.layout = array.layout, ...)
   return(model)
 }
 
 #' @export
 predictLearner.classif.mxff = function(.learner, .model, .newdata, ...) {
-  X = data.matrix(.newdata)
+  x = data.matrix(.newdata)
   array.layout = .model$learner$par.vals$array.layout
   conv.layer1 = ifelse(is.null(.learner$par.vals$conv.layer1),
     .learner$par.set$pars$conv.layer1$default, .learner$par.vals$conv.layer1)
   if (conv.layer1) {
     l = length(.learner$par.vals$conv.data.shape)
     dims = switch(l,
-      c(.learner$par.vals$conv.data.shape, 1, 1, nrow(X)),
-      c(.learner$par.vals$conv.data.shape, 1, nrow(X)),
-      c(.learner$par.vals$conv.data.shape, nrow(X)),
+      c(.learner$par.vals$conv.data.shape, 1, 1, nrow(x)),
+      c(.learner$par.vals$conv.data.shape, 1, nrow(x)),
+      c(.learner$par.vals$conv.data.shape, nrow(x)),
       .learner$par.vals$conv.data.shape)
-    X = array(aperm(X), dim = dims)
+    x = array(aperm(x), dim = dims)
     array.layout = "colmajor"
   }
-  p = predict(.model$learner.model, X = X, array.layout = array.layout)
+  p = predict(.model$learner.model, X = x, array.layout = array.layout)
   if (.learner$predict.type == "response") {
     p = apply(p, 2, function(i) {
       w = which.max(i)
