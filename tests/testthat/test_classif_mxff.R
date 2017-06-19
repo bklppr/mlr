@@ -17,9 +17,12 @@ test_that("classif_mxff", {
   )
 
   # test for Convolution
+  parset.list.conv = list(
+    list(num.filter = 1, kernel = c(1, 1), pool.type = "max", learning.rate = 0.1)
+  )
   parset.list.mlr.conv = list(
     list(layers = 1, conv.layer1 = TRUE, num.layer1 = 1, conv.data.shape = c(2,2),
-      conv.kernel11 = 1, conv.kernel12 = 1, pool.kernel11 = 1, pool.kernel12 = 1
+      conv.kernel11 = 1, conv.kernel12 = 1, pool.kernel11 = 1, pool.kernel12 = 1, pool.type1 = "max"
     )
   )
 
@@ -145,18 +148,23 @@ test_that("classif_mxff", {
   y = as.numeric(multiclass.train[, ncol(multiclass.train)]) - 1
   x = array(aperm(x), dim = c(2, 2, 1, nrow(x)))
   sym = mxnet::mx.symbol.Variable("data")
-  sym = mxnet::mx.symbol.Convolution(sym, kernel = c(1, 1))
-  sym = mxnet::mx.symbol.Pooling(sym, kernel = c(1, 1), type = "max")
+  sym = mxnet::mx.symbol.Convolution(sym, num.filter = parset.list.conv[[1]]$num.filter,
+    kernel = parset.list.conv[[1]]$kernel)
+  sym = mxnet::mx.symbol.Pooling(sym, kernel = parset.list.conv[[1]]$kernel,
+    pool.type = parset.list.conv[[1]]$pool.type)
   sym = mxnet::mx.symbol.flatten(sym)
   levs = levels(multiclass.df[[multiclass.class.col]])
   sym = mxnet::mx.symbol.FullyConnected(sym, num_hidden = length(levs))
   out = mxnet::mx.symbol.SoftmaxOutput(sym)
-  m = mxnet::mx.model.FeedForward.create(out, X = x, y = y, array.layout = "colmajor")
+  m = mxnet::mx.model.FeedForward.create(out, X = x, y = y, array.layout = "colmajor",
+    learning.rate = parset.list.conv[[1]]$learning.rate)
   x.test = data.matrix(multiclass.test[, -ncol(multiclass.test)])
   x.test = array(aperm(x.test), dim = c(2, 2, 1, nrow(x.test)))
-  conv.probs.list[[1]] = predict(m, x.test)
+  probs = t(predict(m, x.test))
+  colnames(probs) = levs
+  conv.probs.list[[1]] = probs
   
   set.seed(getOption("mlr.debug.seed"))
   testProbParsetsWithTol("classif.mxff", multiclass.df, multiclass.target, multiclass.train.inds,
-    conv.probs.list, parset.list.mlr.conv)
+    conv.probs.list, parset.list.mlr.conv, tol = 2e-04)
 })
