@@ -5,14 +5,12 @@ makeRLearner.classif.mxff = function() {
     package = "mxnet",
     par.set = makeParamSet(
       # architectural hyperparameters
-      makeIntegerLearnerParam(id = "layers", lower = 1L, upper = 4L, default = 1L),
+      makeIntegerLearnerParam(id = "layers", lower = 1L, upper = 3L, default = 1L),
       makeIntegerLearnerParam(id = "num.layer1", lower = 1L, default = 1L),
       makeIntegerLearnerParam(id = "num.layer2", lower = 1L, default = 1L,
         requires = quote(layers > 1)),
       makeIntegerLearnerParam(id = "num.layer3", lower = 1L, default = 1L,
         requires = quote(layers > 2)),
-      makeIntegerLearnerParam(id = "num.layer4", lower = 1L, default = 1L,
-        requires = quote(layers > 3)),
       makeDiscreteLearnerParam(id = "act1", default = "tanh",
         values = c("tanh", "relu", "sigmoid", "softrelu")),
       makeDiscreteLearnerParam(id = "act2", default = "tanh",
@@ -21,9 +19,6 @@ makeRLearner.classif.mxff = function() {
       makeDiscreteLearnerParam(id = "act3", default = "tanh",
         values = c("tanh", "relu", "sigmoid", "softrelu"),
         requires = quote(layers > 2)),
-      makeDiscreteLearnerParam(id = "act4", default = "tanh",
-        values = c("tanh", "relu", "sigmoid", "softrelu"),
-        requires = quote(layers > 3)),
       makeDiscreteLearnerParam(id = "act.out", default = "softmax",
         values = c("rmse", "softmax", "logistic")),
       makeLogicalLearnerParam(id = "conv.layer1", default = FALSE),
@@ -226,8 +221,8 @@ makeRLearner.classif.mxff = function() {
 
 #' @export
 trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
-  layers = 1L, num.layer1 = 1L, num.layer2 = 1L, num.layer3 = 1L, num.layer4 = 1L,
-  act1 = "tanh", act2 = "tanh", act3 = "tanh", act4= "tanh", act.out = "softmax",
+  layers = 1L, num.layer1 = 1L, num.layer2 = 1L, num.layer3 = 1L,
+  act1 = "tanh", act2 = "tanh", act3 = "tanh", act.out = "softmax",
   conv.data.shape = NULL, conv.layer1 = FALSE, conv.layer2 = FALSE, conv.layer3 = FALSE,
   conv.kernel11 = NULL, conv.kernel21 = NULL, conv.kernel31 = NULL,
   conv.kernel12 = NULL, conv.kernel22 = NULL, conv.kernel32 = NULL,
@@ -295,8 +290,8 @@ trainLearner.classif.mxff = function(.learner, .task, .subset, .weights = NULL,
     out = symbol
   } else {
     sym = mxnet::mx.symbol.Variable("data")
-    act = c(act1, act2, act3, act4)[1:layers]
-    nums = c(num.layer1, num.layer2, num.layer3, num.layer4)[1:layers]
+    act = c(act1, act2, act3)[1:layers]
+    nums = c(num.layer1, num.layer2, num.layer3)[1:layers]
     convs = c(conv.layer1, conv.layer2, conv.layer3, FALSE)[1:layers]
     # define function to set e.g. conv.kernel12 = conv.kernel11 if conv.kernel12 == NULL
     fillVec = function(vec) {
